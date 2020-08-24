@@ -31,7 +31,7 @@ def user_prompt():
     print('DEFAULT STEP SIZE:', step)
     
     try:
-        okay = input('SETTINGS OKAY? (y/n): ')
+        okay = input('\nSETTINGS OKAY? (y/n): ')
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. DEFAULT SETTINGS WILL BE USED')
     except:
@@ -178,23 +178,21 @@ def read_output(txt):
 
 def translate(pwx, step, nat, symbols, positions, energies, forces):
 
-    print(f"\nTHERE ARE {nat} ATOMS")
+    print(f"\nTHERE ARE {nat} ATOMS\n")
     
     for k in range(nat):
-        print(f"\n{k+1} : {symbols[k]}")
+        print(f"{k+1} : {symbols[k]}")
 
     n = 3 # number of translations
     atom = rand.randint(0,nat-1) # random atom to translate
     rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
     axes = ['x','y','z']    
-    
-    print(f"\nDEFAULT SETTINGS")
 
-    print(f"NUMBER OF TRANSLATIONS: {n}")
+    print(f"\nNUMBER OF TRANSLATIONS: {n}")
     print(f"ATOM(S) TRANSLATED: 1")
     print(f"TRANSLATION DIRECTION: {axes[rhat]}")
 
-    okay = input("DEFAULT SETTINGS OKAY? (y/n): ")
+    okay = input("\nDEFAULT SETTINGS OKAY? (y/n): ")
 
     '''
     while okay == 'n':
@@ -305,8 +303,9 @@ def main():
 
     # plot pw forces v. finite differences ?
     
-    from pandas import DataFrame
     print()
+
+    from pandas import DataFrame
     print(DataFrame( { 'Output Forces' : pwForces ,
                        '\u0394E/\u0394r' : calcforces ,
                        'Error' : errors } ))
