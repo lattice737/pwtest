@@ -135,7 +135,7 @@ def read_input(txt):
             
             strlist = line.strip().split() # break string into list
             
-            if strlist[0] == []: continue
+            if strlist == []: continue # skip empty lines
         
             elif strlist[0] == 'celldm(1)': celldm1 = float(strlist[-1])
             elif strlist[0] == 'nat': nat = int(strlist[-1])
@@ -164,7 +164,7 @@ def read_output(txt):
             
             strlist = line.strip().split()
 
-            if len( strlist ) == 0: continue # skip empty lines
+            if strlist == []: continue # skip empty lines
                 
             elif ' '.join(strlist[1:3]) == 'total energy' and strlist[-1] == 'Ry': etot = float( strlist[-2] ) # record total energy
             elif ' '.join(strlist[:2]) == 'Total force': ftot = float( strlist[3] ) # record total force
