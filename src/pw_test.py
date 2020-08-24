@@ -177,20 +177,40 @@ def read_output(txt):
         return -1, -1
 
 def translate(pwx, step, nat, symbols, positions, energies, forces):
-  
+
+    print(f"\nTHERE ARE {nat} ATOMS")
+    
+    for k in range(nat):
+        print(f"\n{k+1} : {symbols[k]}")
+
     n = 3 # number of translations
     atom = rand.randint(0,nat-1) # random atom to translate
     rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
     axes = ['x','y','z']    
     
+    print(f"\nDEFAULT SETTINGS")
+
+    print(f"NUMBER OF TRANSLATIONS: {n}")
+    print(f"ATOM(S) TRANSLATED: 1")
+    print(f"TRANSLATION DIRECTION: {axes[rhat]}")
+
+    okay = input("DEFAULT SETTINGS OKAY? (y/n): ")
+
+    '''
+    while okay == 'n':
+
+        print('\n1 : # OF TRANSLATIONS')
+        print('2 : # OF TRANSLATED ATOMS')
+        print('3 : TRANSLATION DIRECTION')
+    '''
+
     for i in range(1,n+1): # multiple pw runs
         
         print(f'\nRUNNING TEST ITERATION {i}')
         
         positions[atom][rhat] += step # increment position
         
-        if i == 1: readfile = 'pw.in' # initial input file
-        else: readfile = 'test.in' + str(i-1) # new input file
+        readfile = f"test.in{i}" # new input file
         
         test_input = open(f'test.in{i}','w') # temporary input file creation -- manual open
 
