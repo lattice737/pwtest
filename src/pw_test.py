@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jul 18 09:20:03 2020
+
+@author: nicholas
+"""
+
+import os
+import random as rand
+
+def user_prompt():
+    
+    '''prompts user about program running and default settings; user can change settings'''
+    
+    # 85 picked arbitrarily
+    print(85 * '-')
+    print('PW TEST'.center(85))
+    print(85 * '-')
+    
+    pwd = os.getcwd().split('/')
+    path = '/Users/nicholas/Desktop/qe/bin/pw.x'
+    ftype = 'txt'
+    step = '0.01'
+    
+    '''prompt user about default settings'''
+    
+    print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}") # attempt grep?
+    print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
+    print('INPUT/OUTPUT FILE TYPE:', ftype)
+    print('DEFAULT STEP SIZE:', step)
+    
+    try:
+        okay = input('SETTINGS OKAY? (y/n): ')
+        if okay.lower() != 'y' and okay.lower() != 'n':
+            print('\nINVALID RESPONSE. DEFAULT SETTINGS WILL BE USED')
+    except:
+        print('\nSOMETHING WENT WRONG. DEFAULT SETTINGS WILL BE USED')
+        okay = 'y'
+    
+    while okay == 'n': # menu block
+        
+        print('\n1 : CWD')
+        print('2 : PW.X PATH')
+        print('3 : I/O TYPE')
+        print('4 : STEP SIZE')
+        
+        try:
+            selection = input('ENTER NUMBER TO CHANGE A SETTING: ')
+        except:
+            print('\nINVALID SELECTION')
+            okay = 'n'
+        
+        if selection == '1': # pwd path block
+            
+            try:
+                
+                print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
+                os.getcwd( input('ENTER ABSOLUTE PATH OF WORKING DIRECTORY (NO ALIASES): ') )
+                print('\nNEW WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
+                
+            except:
+                print('\nSOMETHING WENT WRONG. CWD NOT CHANGED')
+            
+        elif selection == '2': # pw.x path block
+            
+            try:
+                
+                print('\nCURRENT LOCATION OF PW.X:', path)
+                path = input('ENTER ABSOLUTE PATH OF PW.X LOCATION: ')
+                print('NEW LOCATION OF PW.X:', path)
+                
+            except:
+                print('\nSOMETHING WENT WRONG. PATH NOT CHANGED')
+                
+        elif selection == '3': # i/o file type block
+            
+            try:
+                
+                print('\nCURRENT INPUT/OUTPUT FILE TYPE:', ftype)
+                xml = input('USE XML? (y/n): ')
+                
+                if xml == 'y': ftype = 'xml'
+                else: ftype = 'txt'
+                
+                print('NEW INPUT/OUTPUT FILE TYPE:', ftype)
+                
+            except:
+                print('\nSOMETHING WENT WRONG. FILETYPE NOT CHANGED')
+                
+        elif selection == '4': # step size block
+            
+            try:
+                
+                print('\nCURRENT STEP SIZE:', step)
+                random = input('USE RANDOM? (y/n): ')
+                
+                if random == 'y': step = round(rand.uniform(-0.01,0.01), 4) # one small random step size to use for all difference calculations
+                else: step = '0.01'
+                
+                print('\nNEW STEP SIZE:', step)
+                
+            except:
+                print('\nSOMETHING WENT WRONG. STEP SIZE NOT CHANGED')
+        
+        print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
+        print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
+        print('INPUT/OUTPUT FILE TYPE:', ftype)
+        print('DEFAULT STEP SIZE:', step)
+        
+        try:
+            
+            okay = input('SETTINGS OKAY? (y/n): ')
+            if okay.lower() != 'y': raise Exception
+        
+        except:
+            okay = 'n'
+        
+    os.chdir('/Users/nicholas/Desktop/qework') # developer machine
+    ftype = 'txt' # xml reading not enabled yet
+        
+    return path, ftype, float(step)
+
+def read_input(txt):
+    
+    '''reads pw input txt file; returns celldm(1), nat, ntyp, atom symbols, & atom positions'''
+        
+    with open(txt) as f:
+        
+        celldm1 = 0
+        nat = 0
+        ntyp = 0
+        
+        for line in f:
+            
+            strlist = line.strip().split() # break string into list
+            
+            if strlist[0] == []: continue
+        
+            elif strlist[0] == 'celldm(1)': celldm1 = float(strlist[-1])
+            elif strlist[0] == 'nat': nat = int(strlist[-1])
+            elif strlist[0] == 'ntyp': ntyp = int(strlist[-1]) 
+            
+            elif 'ATOMIC_POSITIONS' in strlist: # find position block
+                
+                positions = []
+                symbols = []
+                
+                for i in range(nat): # record position data
+                    
+                    strlist = f.readline().strip().split() # make new string list
+                    positions.append([ float(k) for k in strlist[-3:] ])
+                    symbols.append( strlist[0] )
+                    
+    return celldm1, nat, ntyp, symbols, positions
+
+def read_output(txt):
+    
+    '''reads pw output; returns total energy & total force'''
+
+    with open(txt) as f:
+        
+        for line in f:
+            
+            strlist = line.strip().split()
+
+            if len( strlist ) == 0: continue # skip empty lines
+                
+            elif ' '.join(strlist[1:3]) == 'total energy' and strlist[-1] == 'Ry': etot = float( strlist[-2] ) # record total energy
+            elif ' '.join(strlist[:2]) == 'Total force': ftot = float( strlist[3] ) # record total force
+    
+    try:
+        return etot, ftot
+    
+    except:
+        print('\n!!! PW ERROR -- VALUES NOT FOUND IN OUTPUT !!!')
+        return -1, -1
+
+def translate(pwx, step, nat, symbols, positions, energies, forces):
+  
+    n = 3 # number of translations
+    atom = rand.randint(0,nat-1) # random atom to translate
+    rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
+    axes = ['x','y','z']    
+    
+    for i in range(1,n+1): # multiple pw runs
+        
+        print(f'\nRUNNING TEST ITERATION {i}')
+        
+        positions[atom][rhat] += step # increment position
+        
+        if i == 1: readfile = 'pw.in' # initial input file
+        else: readfile = 'test.in' + str(i-1) # new input file
+        
+        test_input = open(f'test.in{i}','w') # temporary input file creation -- manual open
+
+        with open(readfile) as f: # write new input file
+            
+            for line in f:
+                
+                if line.strip() == 'ATOMIC_POSITIONS (bohr)': # find position block
+                    
+                    test_input.write(line) # copy block title
+                    for n in range(nat): # write new position set
+                        test_input.write(f"{symbols[n]}   {positions[n][0]}   {positions[n][1]}   {positions[n][2]}\n")
+                        f.readline()
+                
+                else:
+                    
+                    test_input.write(line) # copy everything else
+        
+        test_input.close() # manual close; opened outside with-statement
+        
+        os.system(f'{pwx} < test.in{i} > test.out{i}') # run new pw calculation; proceeds after calculation
+        
+        #coordinates, newE, newF = read_pw_data(pwxml, needInput=False) # uses read_pw_data function -- moved to module
+        pwE, pwF = read_output(f'test.out{i}')
+        
+        energies.append(pwE)
+        forces.append(pwF)
+        
+        print(f'COMPLETED TEST ITERATION {i}')
+    
+    print()
+    print(32 * '~', 'PW TESTING COMPLETE', 32 * '~')
+    
+    print('\nTRANSLATION DETAILS:')
+    print(f"ATOM (INDEX): '{symbols[atom]}' ({atom+1})")
+    print(f'\u0394r({axes[rhat]}) = {step}')
+        
+    return
+
+def main():
+    """read initial pw results & evaluate pw results at new positions"""
+    
+    # do not use
+    # pwxml = 'pwscf.xml' # pw xml file name
+    # ntypes, natoms, names, coordinates, e0, f0 = read_pw_data(pwxml) # after running pw ; uses read_pw_data function -- moved to module
+    
+    # present default settings and prompt user for changes
+    makepw, ftype, dr = user_prompt()
+    
+    print()
+    print(38 * '~', 'RUNNING', 38 * '~')
+    
+    # run initial input for initial output
+    celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
+    print('\nRUNNING INITIAL INPUT')
+    os.system(f'{makepw} < pw.in > pw.out')
+    print('COMPLETED INITIAL PW CALCULATION')
+    E0, F0 = read_output('pw.out')
+    
+    # initialize lists
+    pwEnergies, pwForces = [E0], [F0]
+    calcforces = []
+    errors = []
+    finiteforces = []
+    
+    # run tests
+    translate( makepw, dr, natoms, names, coordinates, pwEnergies, pwForces )
+    
+    # remove test files
+    # for i in range(1,n+1): os.remove('test_input{i}')
+    
+    '''interpolate and compare'''
+    
+    # compute forces
+    for i in range(len(pwEnergies)):
+        
+        calcforces.append( round( (pwEnergies[i] - pwEnergies[i-1]) / (20 * dr), 6 ) ) # (E2 - E1) / (r2 - r1); 20 * dr = bohr = au
+        errors.append( round(pwForces[i] - calcforces[i], 6) )
+    
+    # evaluate finite differences [ F(x - dx) - F(x + dx) ] / [ 2dx ]
+    for f in range(1, len(pwForces) - 1):
+        
+         finiteforces.append( round((pwForces[f-1] - pwForces[f+1]) / (2 * dr), 6) )
+    
+    '''display results'''
+    
+    #print('\npwEnergies (Ry):', pwEnergies)
+    #print('pwForces (Ry/au):', pwForces)
+    #print('calcForces (dE/dr):', calcforces)
+    #print('difference (F - dE/dr):', errors)
+    #print('finite differences (Ry/au):', finiteforces) # will be shorter than other arrays
+
+    # plot pw forces v. finite differences ?
+    
+    from pandas import DataFrame
+    print()
+    print(DataFrame( { 'Output Forces' : pwForces ,
+                       '\u0394E/\u0394r' : calcforces ,
+                       'Error' : errors } ))
+
+main()
+
+# read pw.in text files rather than xml -- by default ***DONE***
+# add input options, maybe exception handling ***DONE***
+# compare (E2 - E1) / (r2 - r1) against F -- no ulj ***DONE***
+# evaluate difference between finite difference and pw output (error) ***DONE***
+# F(x - dx) - F(x + dx) / 2*dx = F finite difference for regularly spaced dx ***DONE***
+# dx has to be specified in pw.in -- random interval should be optional ***DONE***
+# future task: displace the other atoms in a random direction
+
+# upload input file and maybe pseudopotentials to repository if necessary
+# learn git 
