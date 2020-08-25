@@ -3,7 +3,7 @@
    calculation = 'scf'
    restart_mode = 'from_scratch'
    tprnfor = .TRUE.
-   pseudo_dir='../pseudo'
+   pseudo_dir='./SSSP_efficiency_pseudos'
    outdir='./tmp'
    !
  /
@@ -24,8 +24,8 @@
  /
 K_POINTS gamma
 ATOMIC_SPECIES  
- H   1  H.pbe-rrkjus.UPF
- O  16  O.pbe-rrkjus.UPF
+ H   1  H.pbe-rrkjus_psl.1.0.0.UPF
+ O  16  O.pbe-n-kjpaw_psl.0.1.UPF
 ATOMIC_POSITIONS (bohr)
 O   11.79  12.05  11.50
 H   13.45  11.22  11.50

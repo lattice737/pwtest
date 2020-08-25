@@ -116,7 +116,7 @@ def user_prompt():
         except:
             okay = 'n'
         
-    os.chdir('/Users/nicholas/Desktop/qework') # developer machine
+    os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
     ftype = 'txt' # xml reading not enabled yet
         
     return path, ftype, float(step)
@@ -208,8 +208,9 @@ def translate(pwx, step, nat, symbols, positions, energies, forces):
         
         positions[atom][rhat] += step # increment position
         
-        readfile = f"test.in{i}" # new input file
-        
+        if i == 1: readfile = 'pw.in' # to read initial input file
+        else: readfile = 'test.in' + str(i-1) # to read last input file
+
         test_input = open(f'test.in{i}','w') # temporary input file creation -- manual open
 
         with open(readfile) as f: # write new input file
@@ -305,10 +306,15 @@ def main():
     
     print()
 
-    from pandas import DataFrame
-    print(DataFrame( { 'Output Forces' : pwForces ,
-                       '\u0394E/\u0394r' : calcforces ,
-                       'Error' : errors } ))
+    #from pandas import DataFrame
+    #print(DataFrame( { 'Output Forces' : pwForces ,
+    #                   '\u0394E/\u0394r' : calcforces ,
+    #                   'Error' : errors } ))
+
+    print(f"Output Forces : {pwForces}")
+    print(f"Difference : {calcforces}")
+    print(f"Finite Differences : {['n/a'] + finiteforces + ['n/a']}")
+    print(f"Error : {errors}")
 
 main()
 
