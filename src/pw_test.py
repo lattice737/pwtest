@@ -174,15 +174,15 @@ def translation_prompt(): # INCOMPLETE
         print(f"{k+1} : {symbols[k]}")
 
     nat_moved = 1 # number of atoms moved
-    atom = rand.randint(0,nat-1) # random atom to translate
+    atom = rand.randint(0,nat-1) # random atom to translate -- move to translate()
     nsteps = 3 # number of translations
     rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
     axes = ['x','y','z']    
-    # step = 0.01
+    step = 0.01
 
     '''prompt user about default translation settings'''
 
-    print(f"\nATOM(S) TRANSLATED: {nat_moved}")
+    print(f"\n# OF ATOM(S) TRANSLATED: {nat_moved}")
     print(f"NUMBER OF STEPS: {nsteps}")
     print(f"STEP DIRECTION: {axes[rhat]}")
     print(f"STEP SIZE: {step}")
@@ -204,12 +204,55 @@ def translation_prompt(): # INCOMPLETE
             try:
                 print('\nCURRENT # OF ATOMS TO TRANSLATE:', nat_moved)
                 nat_moved = input(f"NUMBER OF ATOMS TO TRANSLATE (MAX {nat}): ")
-                if 0 < nat_moved <= nat: print(f"NEW ATOM(S) TRANSLATED: {nat_moved}")
+                
+                if 0 < nat_moved <= nat:
+                    print(f"NEW ATOM(S) TRANSLATED: {nat_moved}")
+                    atoms_moved = []
+
+                    '''n-random-atoms translated'''
+                    for i in range(nat_moved): # loop picks atoms to translate
+                        n = rand.choice(range(len(symbols))) # random index between 0 and nat
+                        if n not in atoms_moved: # do not repeat indices
+                            atoms_moved.append()
+
+                    '''n-selected-atoms translated'''
+                    """
+                    print(f"\nTRANSLATED ATOMS MARKED BY ASTERISK (*)")
+                    for k in range(nat): # display translated atoms
+                        if k in atoms_moved:
+                            print(f"{k+1} : {symbols[k]} *")
+                        else:
+                            print(f"{k+1} : {symbols[k]}")
+
+                    another = input("CHOOSE ATOMS TO TRANSLATE? (y/n): ")
+                    while another.lower() == 'y':
+
+                        index = input("ENTER A NUMBER TO CHOOSE AN ATOM: ")
+                        if index not in atoms_moved:
+                            atoms_moved.append(index)
+
+                        print(f"\nTRANSLATED ATOMS MARKED BY ASTERISK (*)")
+                        for k in range(nat): # display atoms in system
+                            if k in atoms_moved:
+                                print(f"{k+1} : {symbols[k]} *")
+                            else:
+                                print(f"{k+1} : {symbols[k]}")
+
+                        another = input("\nCHOOSE ANOTHER ATOM? (y/n): ")
+                    """
+
                 else:
                     print(f"ATOM(S) TRANSLATED CANNOT BE {nat_moved}")
+                    print("ATOM(S) TRANSLATED NOT CHANGED")
+                    nat_moved = 1
 
             except:
                 print(f"\nINVALID RESPONSE. # OF ATOM(S) TRANSLATED NOT CHANGED")
+
+
+
+
+
 
         elif selection == '2': # number of steps block
             
