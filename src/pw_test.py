@@ -25,7 +25,10 @@ def launch_prompt():
     
     '''prompt user about default settings'''
     
-    print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}") # attempt grep?
+    if len(pwd[1:]) >= 5:
+        print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}") # attempt grep?
+    else:
+        print("\nCURRENT WORKING DIRECTORY:", '/'.join(pwd))
     print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
     print('INPUT/OUTPUT FILE TYPE:', ftype)
     
@@ -414,7 +417,7 @@ main()
 # evaluate difference between finite difference and pw output (error) ***DONE***
 # F(x - dx) - F(x + dx) / 2*dx = F finite difference for regularly spaced dx ***DONE***
 # dx has to be specified in pw.in -- random interval should be optional ***DONE***
-# future task: displace the other atoms in a random direction
+# future task: displace the other atoms in a random direction ***IN PROGRESS***
 
 # upload input file and maybe pseudopotentials to repository if necessary
 # learn git 
