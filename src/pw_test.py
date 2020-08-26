@@ -9,7 +9,7 @@ Created on Sat Jul 18 09:20:03 2020
 import os
 import random as rand
 
-def user_prompt():
+def launch_prompt():
     
     '''prompts user about program running and default settings; user can change settings'''
     
@@ -28,7 +28,6 @@ def user_prompt():
     print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}") # attempt grep?
     print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
     print('INPUT/OUTPUT FILE TYPE:', ftype)
-    print('DEFAULT STEP SIZE:', step)
     
     try:
         okay = input('\nSETTINGS OKAY? (y/n): ')
@@ -87,21 +86,6 @@ def user_prompt():
                 
             except:
                 print('\nSOMETHING WENT WRONG. FILETYPE NOT CHANGED')
-                
-        elif selection == '4': # step size block
-            
-            try:
-                
-                print('\nCURRENT STEP SIZE:', step)
-                random = input('USE RANDOM? (y/n): ')
-                
-                if random == 'y': step = round(rand.uniform(-0.01,0.01), 4) # one small random step size to use for all difference calculations
-                else: step = '0.01'
-                
-                print('\nNEW STEP SIZE:', step)
-                
-            except:
-                print('\nSOMETHING WENT WRONG. STEP SIZE NOT CHANGED')
         
         print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
         print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
@@ -109,7 +93,6 @@ def user_prompt():
         print('DEFAULT STEP SIZE:', step)
         
         try:
-            
             okay = input('SETTINGS OKAY? (y/n): ')
             if okay.lower() != 'y': raise Exception
         
@@ -119,7 +102,7 @@ def user_prompt():
     os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
     ftype = 'txt' # xml reading not enabled yet
         
-    return path, ftype, float(step)
+    return path, ftype
 
 def read_input(txt):
     
@@ -176,31 +159,123 @@ def read_output(txt):
         print('\n!!! PW ERROR -- VALUES NOT FOUND IN OUTPUT !!!')
         return -1, -1
 
-def translate(pwx, step, nat, symbols, positions, energies, forces):
+def translation_prompt(): # INCOMPLETE
+
+    '''translation prompt'''
 
     print(f"\nTHERE ARE {nat} ATOMS\n")
     
-    for k in range(nat):
+    for k in range(nat): # display atoms in system
         print(f"{k+1} : {symbols[k]}")
 
-    n = 3 # number of translations
+    nat_moved = 1 # number of atoms moved
     atom = rand.randint(0,nat-1) # random atom to translate
+    nsteps = 3 # number of translations
     rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
     axes = ['x','y','z']    
+    # step = 0.01
 
-    print(f"\nNUMBER OF TRANSLATIONS: {n}")
-    print(f"ATOM(S) TRANSLATED: 1")
-    print(f"TRANSLATION DIRECTION: {axes[rhat]}")
+    '''prompt user about default translation settings'''
+
+    print(f"\nATOM(S) TRANSLATED: {nat_moved}")
+    print(f"NUMBER OF STEPS: {nsteps}")
+    print(f"STEP DIRECTION: {axes[rhat]}")
+    print(f"STEP SIZE: {step}")
 
     okay = input("\nDEFAULT SETTINGS OKAY? (y/n): ")
 
-    '''
     while okay == 'n':
 
-        print('\n1 : # OF TRANSLATIONS')
-        print('2 : # OF TRANSLATED ATOMS')
-        print('3 : TRANSLATION DIRECTION')
-    '''
+        print('\n1 : # OF ATOMS TO TRANSLATE')
+        print('2 : NUMBER OF STEPS')
+        print('3 : STEP DIRECTION')
+        print('4 : STEP SIZE')
+
+        # add try/except block later
+        selection = input('\nENTER A NUMBER TO CHANGE A SETTING: ')
+
+        if selection == '1': # number of translated atoms block
+
+            try:
+                print('\nCURRENT # OF ATOMS TO TRANSLATE:', nat_moved)
+                nat_moved = input(f"NUMBER OF ATOMS TO TRANSLATE (MAX {nat}): ")
+                if 0 < nat_moved <= nat: print(f"NEW ATOM(S) TRANSLATED: {nat_moved}")
+                else:
+                    print(f"ATOM(S) TRANSLATED CANNOT BE {nat_moved}")
+
+            except:
+                print(f"\nINVALID RESPONSE. # OF ATOM(S) TRANSLATED NOT CHANGED")
+
+        elif selection == '2': # number of steps block
+            
+            try:
+                
+                print('\nCURRENT NUMBER OF STEPS:', nsteps)
+                nsteps = input('ENTER NUMBER OF STEPS TO TAKE: ')
+                if 0 < nsteps <= 20:
+                    print('NEW NUMBER OF STEPS:', nsteps)
+                elif nsteps > 20:
+                    print('WARNING: NEW NUMBER OF STEPS IS LARGE')
+                
+            except:
+                print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
+                
+        elif selection == '3': # step direction block
+            
+            try:
+                
+                print('\nCURRENT STEP DIRECTION:', axes[rhat])
+                rhat = input("ENTER NEW STEP DIRECTION (x,y,z): ")
+                
+                if rhat.lower() in axes:
+                    print('NEW STEP DIRECTION:', rhat) # rhat is a char
+                    rhat = axes.find(rhat) # assign index to rhat; rhat is an int
+                
+            except:
+                print('\nSOMETHING WENT WRONG. STEP DIRECTION NOT CHANGED')
+                
+        elif selection == '4': # step size block
+            
+            try:
+                print('\nCURRENT STEP SIZE:', step)
+                random = input('USE RANDOM? (y/n): ')
+                
+                if random == 'y': step = round(rand.uniform(-0.01,0.01), 4) # one small random step size to use for all difference calculations
+                else: step = '0.01'
+                
+                print('\nNEW STEP SIZE:', step)
+                
+            except:
+                print('\nSOMETHING WENT WRONG. STEP SIZE NOT CHANGED')
+
+        '''confirm settings'''
+
+        print(f"\nATOM(S) TRANSLATED: {nat_moved}")
+        print(f"NUMBER OF STEPS: {n}")
+        print(f"STEP DIRECTION: {axes[rhat]}")
+        print(f"STEP SIZE: {step}")
+
+        try:
+            okay = input('SETTINGS OKAY? (y/n): ')
+            if okay.lower() != 'y': raise Exception
+        
+        except:
+            okay = 'n'
+
+        return 
+
+def translate(pwx, nat, symbols, positions, energies, forces):
+
+    #step = translation_prompt()
+
+    # settings block -- delete when translation prompt complete
+    atom = rand.randint(0,nat-1) # random atom to translate
+    n = 3 # number of translations
+    rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
+    axes = ['x','y','z']    
+    step = 0.01
+
+    '''translation routine -- uses variables n (# of steps), atom (translated), rhat (step direction), axes (axis strings)'''
 
     for i in range(1,n+1): # multiple pw runs
         
@@ -245,9 +320,9 @@ def translate(pwx, step, nat, symbols, positions, energies, forces):
     
     print('\nTRANSLATION DETAILS:')
     print(f"ATOM (INDEX): '{symbols[atom]}' ({atom+1})")
-    print(f'\u0394r({axes[rhat]}) = {step}')
+    print(f'\u0394r({axes[rhat]}) = {step}\n')
         
-    return
+    return step
 
 def main():
     """read initial pw results & evaluate pw results at new positions"""
@@ -257,7 +332,7 @@ def main():
     # ntypes, natoms, names, coordinates, e0, f0 = read_pw_data(pwxml) # after running pw ; uses read_pw_data function -- moved to module
     
     # present default settings and prompt user for changes
-    makepw, ftype, dr = user_prompt()
+    makepw, ftype = launch_prompt()
     
     print()
     print(38 * '~', 'RUNNING', 38 * '~')
@@ -276,11 +351,13 @@ def main():
     finiteforces = []
     
     # run tests
-    translate( makepw, dr, natoms, names, coordinates, pwEnergies, pwForces )
+    dr = translate( makepw, natoms, names, coordinates, pwEnergies, pwForces ) # returns step size
     
     # remove test files
     # for i in range(1,n+1): os.remove('test_input{i}')
     
+    """NEED STEP SIZE BELOW"""
+
     '''interpolate and compare'''
     
     # compute forces

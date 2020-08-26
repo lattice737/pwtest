@@ -27,6 +27,6 @@ ATOMIC_SPECIES
  H   1  H.pbe-rrkjus_psl.1.0.0.UPF
  O  16  O.pbe-n-kjpaw_psl.0.1.UPF
 ATOMIC_POSITIONS (bohr)
-O   11.79   12.05   11.5
-H   13.45   11.22   11.51
+O   11.799999999999999   12.05   11.5
+H   13.45   11.22   11.5
 H   10.56   10.66   11.5
