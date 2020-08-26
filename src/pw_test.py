@@ -29,6 +29,8 @@ def launch_prompt():
     print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
     print('INPUT/OUTPUT FILE TYPE:', ftype)
     
+    # add receipt/log option for temporary runs
+
     try:
         okay = input('\nSETTINGS OKAY? (y/n): ')
         if okay.lower() != 'y' and okay.lower() != 'n':
@@ -322,7 +324,7 @@ def translate(pwx, nat, symbols, positions, energies, forces):
     print(f"ATOM (INDEX): '{symbols[atom]}' ({atom+1})")
     print(f'\u0394r({axes[rhat]}) = {step}\n')
         
-    return step
+    return step # may need to return more
 
 def main():
     """read initial pw results & evaluate pw results at new positions"""
@@ -351,10 +353,21 @@ def main():
     finiteforces = []
     
     # run tests
-    dr = translate( makepw, natoms, names, coordinates, pwEnergies, pwForces ) # returns step size
+    dr = translate( makepw, natoms, names, coordinates, pwEnergies, pwForces ) # returns step size & number of translations
     
     # remove test files
-    # for i in range(1,n+1): os.remove('test_input{i}')
+    try:
+        delete = input('PERMANENTLY REMOVE TEMPORARY FILES? (y/n): ')
+        
+        if delete.lower() == 'y':
+            for i in range(1,natoms+1): os.remove(f'test.in{i}')
+            for i in range(1,natoms+1): os.remove(f'test.out{i}')
+
+        else:
+            print('\nNO APPROVAL: FILES NOT REMOVED')
+
+    except:
+        print('\nSOMETHING WENT WRONG. FILES NOT REMOVED')
     
     """NEED STEP SIZE BELOW"""
 
