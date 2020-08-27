@@ -445,8 +445,7 @@ def main():
 
     from pandas import DataFrame
     print(DataFrame( { 'Output Forces' : pwForces ,
-                       '\u0394E/\u0394r' : calcforces ,
-                       'Error' : errors } ))
+                       '\u0394E/\u0394r' : ['n/a'] + calcforces + ['n/a'] } ))
 
     #print(f"Output Forces : {pwForces}")
     #print(f"Difference : {calcforces}")
