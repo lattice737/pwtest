@@ -104,7 +104,7 @@ def launch_prompt():
         except:
             okay = 'n'
         
-    os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
+    #os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
     ftype = 'txt' # xml reading not enabled yet
         
     return path, ftype
@@ -442,15 +442,15 @@ def main():
     
     print()
 
-    #from pandas import DataFrame
-    #print(DataFrame( { 'Output Forces' : pwForces ,
-    #                   '\u0394E/\u0394r' : calcforces ,
-    #                   'Error' : errors } ))
+    from pandas import DataFrame
+    print(DataFrame( { 'Output Forces' : pwForces ,
+                       '\u0394E/\u0394r' : calcforces ,
+                       'Error' : errors } ))
 
-    print(f"Output Forces : {pwForces}")
-    print(f"Difference : {calcforces}")
-    print(f"Finite Differences : {['n/a'] + finiteforces + ['n/a']}")
-    print(f"Error : {errors}")
+    #print(f"Output Forces : {pwForces}")
+    #print(f"Difference : {calcforces}")
+    #print(f"Finite Differences : {['n/a'] + finiteforces + ['n/a']}")
+    #print(f"Error : {errors}")
 
 main()
 
