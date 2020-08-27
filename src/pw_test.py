@@ -420,15 +420,16 @@ def main():
     '''interpolate and compare'''
     
     # compute forces
-    for i in range(len(pwEnergies)):
-        
-        calcforces.append( round( (pwEnergies[i] - pwEnergies[i-1]) / (20 * dr), 6 ) ) # (E2 - E1) / (r2 - r1); 20 * dr = bohr = au
-        errors.append( round(pwForces[i] - calcforces[i], 6) )
-    
+    #for i in range(len(pwEnergies)):
+    #    
+    #    calcforces.append( round( (pwEnergies[i] - pwEnergies[i-1]) / (20 * dr), 6 ) ) # (E2 - E1) / (r2 - r1); 20 * dr = bohr = au
+    #    errors.append( round(pwForces[i] - calcforces[i], 6) )
+    #
     # evaluate finite differences [ F(x - dx) - F(x + dx) ] / [ 2dx ]
-    for f in range(1, len(pwForces) - 1):
+    
+    for f in range(1, len(pwEnergies) - 1):
         
-         finiteforces.append( round((pwForces[f-1] - pwForces[f+1]) / (2 * dr), 6) )
+         calcforces.append( round((pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6) )
     
     '''display results'''
     
@@ -456,7 +457,7 @@ main()
 
 # read pw.in text files rather than xml -- by default ***DONE***
 # add input options, maybe exception handling ***DONE***
-# compare (E2 - E1) / (r2 - r1) against F -- no ulj ***DONE***
+# compare (E(x - dx) - E(x + dx)) / (2 * dx) against F -- no ulj ***DONE***
 # evaluate difference between finite difference and pw output (error) ***DONE***
 # F(x - dx) - F(x + dx) / 2*dx = F finite difference for regularly spaced dx ***DONE***
 # dx has to be specified in pw.in -- random interval should be optional ***DONE***
