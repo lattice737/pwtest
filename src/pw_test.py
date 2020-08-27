@@ -429,7 +429,7 @@ def main():
     
     for f in range(1, len(pwEnergies) - 1):
         
-         calcforces.append( round((pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6) )
+         calcforces.append( round( np.linalg.norm((pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6) )
     
     '''display results'''
     
@@ -462,5 +462,4 @@ main()
 # dx has to be specified in pw.in -- random interval should be optional ***DONE***
 # future task: displace the other atoms in a random direction ***IN PROGRESS***
 
-# upload input file and maybe pseudopotentials to repository if necessary
-# learn git 
+# force value to use from output should be from the atom changed in the direction changed
