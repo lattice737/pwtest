@@ -396,7 +396,6 @@ def main():
     pwEnergies, pwForces = [E0], [F0]
     calcforces = []
     errors = []
-    finiteforces = []
     
     # run tests
     dr = translate( makepw, natoms, names, coordinates, pwEnergies, pwForces ) # returns step size & number of translations
@@ -430,6 +429,7 @@ def main():
     for f in range(1, len(pwEnergies) - 1):
         
          calcforces.append( round( np.linalg.norm((pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6) )
+         errors.append( round(pwForces[f] - calcforces[f]) )
     
     '''display results'''
     
@@ -445,7 +445,8 @@ def main():
 
     from pandas import DataFrame
     print(DataFrame( { 'Output Forces' : pwForces ,
-                       '\u0394E/\u0394r' : ['n/a'] + calcforces + ['n/a'] } ))
+                       '\u0394E/\u0394r' : ['n/a'] + calcforces + ['n/a'],
+                       'Error' :  } ))
 
     #print(f"Output Forces : {pwForces}")
     #print(f"Difference : {calcforces}")
@@ -456,10 +457,10 @@ main()
 
 # read pw.in text files rather than xml -- by default ***DONE***
 # add input options, maybe exception handling ***DONE***
-# compare (E(x - dx) - E(x + dx)) / (2 * dx) against F -- no ulj ***DONE***
+# compare (E(x - dx) - E(x + dx)) / (2 * dx) against F component of particle ***DONE***
 # evaluate difference between finite difference and pw output (error) ***DONE***
-# F(x - dx) - F(x + dx) / 2*dx = F finite difference for regularly spaced dx ***DONE***
-# dx has to be specified in pw.in -- random interval should be optional ***DONE***
 # future task: displace the other atoms in a random direction ***IN PROGRESS***
 
 # force value to use from output should be from the atom changed in the direction changed
+# manage temporary files differently
+# use a file to store user settings
