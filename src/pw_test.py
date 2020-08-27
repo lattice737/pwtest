@@ -18,18 +18,41 @@ def launch_prompt():
     print('PW TEST'.center(85))
     print(85 * '-')
     
-    pwd = os.getcwd().split('/')
-    path = '/Users/nicholas/Desktop/qe/bin/pw.x'
+    workdir = os.getcwd().split('/')
+    pwx = pwstr = '/Users/nicholas/Desktop/qe/bin/pw.x' # pwx: not to be changed, pwstr: to be manipulated
     ftype = 'txt'
-    step = '0.01'
     
     '''prompt user about default settings'''
+
+    try:
+        with open('./paths.txt') as f:
+            for line in f:
+                strlist = line.strip().split()
+                if strlist == []: continue
+                elif strlist[0] == 'workdir':
+                    os.chdir(strlist[-1])
+                    workdir = strlist[-1].split('/')
+                    if len(workdir) >= 6: 
+                        workdir = f"/{workdir[1]}/{workdir[2]}/ ... /{workdir[-2]}/{workdir[-1]}" # attempt grep?
+                    else:
+                        workdir = '/'.join(workdir)
+                elif strlist[0] == 'pwx':
+                    pwx = strlist[-1]
+                    pwlist = strlist[-1].split('/')
+                    if len(pwlist) >= 6:
+                        pwstr = f"/{pwlist[1]}/{pwlist[2]}/ ... /{pwlist[-2]}/{pwlist[-1]}" # attempt grep?
+                    else:
+                        pwstr = '/'.join(pwlist)
+            
+            print("\nCURRENT WORKING DIRECTORY:", workdir)
+            print("CURRENT LOCATION OF PW.X:", pwstr)
+
+    except:
+        print('exception raised')
+        workdir = '/'.join(workdir)
+        print("\nCURRENT WORKING DIRECTORY:", workdir)
+        print("CURRENT LOCATION OF PW.X:", pwx)
     
-    if len(pwd[1:]) >= 5:
-        print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}") # attempt grep?
-    else:
-        print("\nCURRENT WORKING DIRECTORY:", '/'.join(pwd))
-    print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
     print('INPUT/OUTPUT FILE TYPE:', ftype)
     
     # add receipt/log option for temporary runs
@@ -37,45 +60,60 @@ def launch_prompt():
     try:
         okay = input('\nSETTINGS OKAY? (y/n): ')
         if okay.lower() != 'y' and okay.lower() != 'n':
-            print('\nINVALID RESPONSE. DEFAULT SETTINGS WILL BE USED')
+            print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except:
-        print('\nSOMETHING WENT WRONG. DEFAULT SETTINGS WILL BE USED')
+        print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
         okay = 'y'
     
-    while okay == 'n': # menu block
+    while okay.lower() == 'n': # menu block
         
-        print('\n1 : CWD')
+        print('\n1 : WORKING DIR')
         print('2 : PW.X PATH')
         print('3 : I/O TYPE')
-        print('4 : STEP SIZE')
         
         try:
-            selection = input('ENTER NUMBER TO CHANGE A SETTING: ')
+            selection = input('\nENTER NUMBER TO CHANGE A SETTING: ')
         except:
             print('\nINVALID SELECTION')
             okay = 'n'
         
-        if selection == '1': # pwd path block
+        if selection == '1': # working directory path block
             
             try:
                 
-                print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
-                os.getcwd( input('ENTER ABSOLUTE PATH OF WORKING DIRECTORY (NO ALIASES): ') )
-                print('\nNEW WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
-                
+                print('\nCURRENT WORKING DIRECTORY:', workdir)
+                newdir = input('ENTER ABSOLUTE PATH OF WORKING DIRECTORY: ').split('/')
+                if len(newdir) >= 6:
+                    print('\nNEW WORKING DIRECTORY:', f"/{newdir[1]}/{newdir[2]}/ ... /{newdir[-2]}/{newdir[-1]}")
+                    workdir = '/'.join(newdir)
+                else:
+                    workdir = '/'.join(newdir)
+
+                with open('paths.txt','w') as f: # store new directory path
+                    f.write("'''paths of user working directory & pw.x'''\n\n")
+                    f.write(f"workdir = {workdir}\n")
+                    f.write(f"pwx = {pwx}\n")
+
+                os.chdir(workdir)
+
             except:
-                print('\nSOMETHING WENT WRONG. CWD NOT CHANGED')
-            
+                print('\nSOMETHING WENT WRONG. WORKING DIRECTORY NOT CHANGED')
+
         elif selection == '2': # pw.x path block
             
             try:
                 
-                print('\nCURRENT LOCATION OF PW.X:', path)
-                path = input('ENTER ABSOLUTE PATH OF PW.X LOCATION: ')
-                print('NEW LOCATION OF PW.X:', path)
+                print('\nCURRENT LOCATION OF PW.X:', pwstr)
+                pwx = input('ENTER ABSOLUTE PATH OF PW.X LOCATION: ')
+                print('NEW LOCATION OF PW.X:', pwx)
+
+                with open('paths.txt','w') as f: # store new pw.x path
+                    f.write("'''paths of user working directory & pw.x'''\n\n")
+                    f.write(f"workdir = {workdir}\n")
+                    f.write(f"pwx = {pwx}\n")
                 
             except:
-                print('\nSOMETHING WENT WRONG. PATH NOT CHANGED')
+                print('\nSOMETHING WENT WRONG. PW.X PATH NOT CHANGED')
                 
         elif selection == '3': # i/o file type block
             
@@ -90,15 +128,14 @@ def launch_prompt():
                 print('NEW INPUT/OUTPUT FILE TYPE:', ftype)
                 
             except:
-                print('\nSOMETHING WENT WRONG. FILETYPE NOT CHANGED')
+                print('\nSOMETHING WENT WRONG. FILE TYPE NOT CHANGED')
         
-        print('\nCURRENT WORKING DIRECTORY:', f"/{pwd[1]}/{pwd[2]}/ ... /{pwd[-2]}/{pwd[-1]}")
-        print('DEFAULT LOCATION OF PW.X:', path) # attempt grep?
+        print('\nCURRENT WORKING DIRECTORY:', workdir)
+        print('LOCATION OF PW.X:', pwx) # attempt grep?
         print('INPUT/OUTPUT FILE TYPE:', ftype)
-        print('DEFAULT STEP SIZE:', step)
         
         try:
-            okay = input('SETTINGS OKAY? (y/n): ')
+            okay = input('\nSETTINGS OKAY? (y/n): ')
             if okay.lower() != 'y': raise Exception
         
         except:
@@ -107,7 +144,7 @@ def launch_prompt():
     #os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
     ftype = 'txt' # xml reading not enabled yet
         
-    return path, ftype
+    return pwx, ftype
 
 def read_input(txt):
     
@@ -156,7 +193,12 @@ def read_output(txt):
                 
             elif ' '.join(strlist[1:3]) == 'total energy' and strlist[-1] == 'Ry': etot = float( strlist[-2] ) # record total energy
             elif ' '.join(strlist[:2]) == 'Total force': ftot = float( strlist[3] ) # record total force
-    
+
+            #elif strlist[0] == 'Forces':
+            #
+            #    strlist = f.readline().strip().split()
+            #    while strlist[0] == 'atom':
+
     try:
         return etot, ftot
     
@@ -385,10 +427,12 @@ def main():
     print()
     print(38 * '~', 'RUNNING', 38 * '~')
     
+    # need to specify atom and direction to be changed here
+
     # run initial input for initial output
     celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
     print('\nRUNNING INITIAL INPUT')
-    os.system(f'{makepw} < pw.in > pw.out')
+        os.system(f'{makepw} < pw.in > pw.out')
     print('COMPLETED INITIAL PW CALCULATION')
     E0, F0 = read_output('pw.out')
     
@@ -418,40 +462,20 @@ def main():
 
     '''interpolate and compare'''
     
-    # compute forces
-    #for i in range(len(pwEnergies)):
-    #    
-    #    calcforces.append( round( (pwEnergies[i] - pwEnergies[i-1]) / (20 * dr), 6 ) ) # (E2 - E1) / (r2 - r1); 20 * dr = bohr = au
-    #    errors.append( round(pwForces[i] - calcforces[i], 6) )
-    #
-    # evaluate finite differences [ F(x - dx) - F(x + dx) ] / [ 2dx ]
-    
     for f in range(1, len(pwEnergies) - 1):
         
-         calcforces.append( round( np.linalg.norm((pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6) )
-         errors.append( round(pwForces[f] - calcforces[f]) )
+         calcforces.append( -1 * round( (pwEnergies[f-1] - pwEnergies[f+1]) / (2 * dr), 6 ) )
+         errors.append( round(pwForces[f] - calcforces[f-1], 6) )
     
     '''display results'''
-    
-    #print('\npwEnergies (Ry):', pwEnergies)
-    #print('pwForces (Ry/au):', pwForces)
-    #print('calcForces (dE/dr):', calcforces)
-    #print('difference (F - dE/dr):', errors)
-    #print('finite differences (Ry/au):', finiteforces) # will be shorter than other arrays
 
-    # plot pw forces v. finite differences ?
-    
+    print(f"\nOutput Energies : {pwEnergies}")
+    print(f"Output Forces : {pwForces}")
+    print(f"Differences : {calcforces}")
+    print(f"Error : {errors}")
     print()
 
-    from pandas import DataFrame
-    print(DataFrame( { 'Output Forces' : pwForces ,
-                       '\u0394E/\u0394r' : ['n/a'] + calcforces + ['n/a'],
-                       'Error' :  } ))
-
-    #print(f"Output Forces : {pwForces}")
-    #print(f"Difference : {calcforces}")
-    #print(f"Finite Differences : {['n/a'] + finiteforces + ['n/a']}")
-    #print(f"Error : {errors}")
+    # display results graphically?
 
 main()
 
