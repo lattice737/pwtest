@@ -202,15 +202,21 @@ def read_output(txt, nat, atoms_moved, move_directions):
             elif ' '.join(strlist[:2]) == 'Forces acting': # find block with forces acting on atoms
                 
                 f.readline()
-                for v in range(nat): # NOT WORKING -- INDEX ISSUES
+                for v in range(nat): # WORKING
 
                     blocklinelist = f.readline().strip().split()
 
                     if int(blocklinelist[1]) in atoms_moved: # if atom index is in list of atoms to be moved
                         
-                        atom_index = atoms_moved.index( int( blocklinelist[1] ) ) # atom index in system -> atom index in translated atoms list
-                        force_components[ move_directions[ atom_index ] ] = float(blocklinelist[ move_directions[ atom_index ] - 3 ]) # forces[ atom index ] = line[ axes [ atom index ] ]
+                        atom_sysindex = int(blocklinelist[1]) # atom index in system from 1 to nat
+                        for w in range(len(atoms_moved)):
 
+                            if int(atoms_moved[w]) == atom_sysindex:
+                                atom_listindex = int(atoms_moved[w]) - 1 # index in system -> index in list
+                            else: continue
+
+                            force_components[ atom_listindex ] = float( blocklinelist[ move_directions[w] - 3 ])
+                            
                     else:
                         continue
 
@@ -240,7 +246,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
     print("\nNUMBER OF STEPS:", n_steps)
     print("STEP SIZE:", stepsize)
-    print("ATOMS TO TRANSLATE:")
+    print("ATOM(S) TO TRANSLATE:")
     for i in range(nat_moved):
         print(f"\n{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
 
@@ -257,7 +263,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
     while okay == 'n':
 
-        print('\n1 : ATOMS TO TRANSLATE')
+        print('\n1 : ATOM(S) TO TRANSLATE')
         print('2 : NUMBER OF STEPS')
         print('3 : STEP DIRECTION(S)')
         print('4 : STEP SIZE')
@@ -287,7 +293,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                     elif atom not in atoms_moved:
                         atoms_moved.append(atom)
                         direction = input("\nWHICH DIRECTION? (x,y,z): ")
-                        if direction in axislist:
+                        if direction.lower() in axislist:
                             move_directions.append(axislist.index(direction))
                             nat_moved += 1
                         else:
@@ -316,33 +322,37 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             except:
                 print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
                 
-        elif selection == '3': # step direction block -- INCOMPLETE
+        elif selection == '3': # step direction block
             
             try:
                 
-                print("\nTRANSLATED ATOMS:")
-                for i in range(nat_moved):
-                    print(f"{i+1} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
-                atom = input("\nENTER A NUMBER TO CHANGE AN ATOM'S TRANSLATION DIRECTION (Enter IF DONE): ")
-
-                while atom in nat_moved:
-                    
-                    print(f"CURRENT DIRECTION OF ATOM {atom} ({symbols[atom-1]}): {axislist[ move_directions[atom-1] ]}")
-                    axis = input("ENTER NEW STEP DIRECTION (x,y,z): ")
-                
-                    if direction.lower() in axes:
-                        print('NEW STEP DIRECTION:', axis) # rhat is a char
-                        move_directions.append( axislist.find(axis) ) # assign index to rhat; rhat is an int
+                print("\nASTERISKED ATOM(S) WILL BE TRANSLATED:\n")
+                for k in range(nat):
+                    if k+1 in atoms_moved:
+                        print(f"{k+1} : {symbols[k]} *")
                     else:
-                        print(f'DIRECTION CANNOT BE {axis}. DIRECTION NOT CHANGED')
+                        print(f"{k+1} : {symbols[k]}")
 
-                    print("\nTRANSLATED ATOMS:")
-                    for i in range(nat_moved):
-                        print(f"{i+1} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]} / ") # n-atom : symbol delta(x or y or z)
-                    atom = input("\nENTER A NUMBER TO CHANGE AN ATOM'S TRANSLATION DIRECTION (Enter IF DONE): ")
+                atom = int(input("\nENTER A NUMBER TO CHANGE AN ATOM'S TRANSLATION DIRECTION: "))
+
+                if 0 < atom <= nat: # selection must be nonzero and not greater than the total number of particles
+
+                    if atom in atoms_moved: # selection must already be tagged for translation
+                        
+                        print(f"\nCURRENT DIRECTION TO TRANSLATE ATOM {atom} : {axislist[ move_directions[ int(atoms_moved.index(atom)) ] ]}")
+                        direction = input("ENTER NEW STEP DIRECTION (x,y,z): ")
+                    
+                        if direction.lower() in axislist:
+                            print('\nNEW STEP DIRECTION:', direction) # rhat is a char
+                            move_directions[ int(atoms_moved.index(atom)) ] = axislist.index(direction) # replace direction index
+                        else:
+                            print(f'DIRECTION CANNOT BE {direction}. DIRECTION NOT CHANGED')
+
+                    else:
+                        print("\nTHAT ATOM IS NOT BEING TRANSLATED. STEP DIRECTION NOT CHANGED")
 
                 else:
-                    print("\nSTEP DIRECTION NOT CHANGED")
+                    print("\nINVALID RESPONSE. STEP DIRECTION NOT CHANGED")
 
             except:
                 print('\nSOMETHING WENT WRONG. STEP DIRECTION NOT CHANGED')
@@ -377,11 +387,11 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
         try:
             okay = input('\nTRANSLATION SETTINGS OKAY? (y/n): ')
-            if okay != 'y' and okay != 'n':
-                raise Exception
+            if okay.lower() != 'y' and okay.lower() != 'n':
+                print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
         
         except:
-            print("\nSOMETHING WENT WRONG. DEFAULT SETTINGS WILL BE USED")
+            print("\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED")
             okay = 'y'
 
     return atoms_moved, n_steps, move_directions, stepsize # in menu order
@@ -497,7 +507,7 @@ def main():
         calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
     calcForces = ['n/a'] + calcForces + ['n/a']
 
-    print("\nOutput Forces [ oxygen, hydrogen, hydrogen ]")
+    print("\nOutput Forces [ atom1, atom2, atom3 ]")
     for z in range(len(pwForces)):
         if z == 0:
             print(f"Initial Run: {pwForces[z]}")
@@ -516,7 +526,7 @@ def main():
 
         print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} ({DIR})")
         for f in pwForces: # does not work when oxygen is translated in the y direction
-            print(f[mvatoms[c]])
+            print(f[mvatoms[c]-1])
 
     print()
     
