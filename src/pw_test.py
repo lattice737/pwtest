@@ -209,7 +209,7 @@ def read_output(txt):
         print('\n!!! PW ERROR -- VALUES NOT FOUND IN OUTPUT !!!')
         return -1, -1
 
-def translation_prompt(nat, symbols, n_steps, axislist): # INCOMPLETE
+def translation_prompt(nat, symbols, n_steps, axislist):
     
     '''translation prompt'''
 
