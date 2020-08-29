@@ -232,23 +232,23 @@ def translation_prompt(nat, symbols, n_steps, axislist):
     '''translation prompt'''
 
     # initial values -- len(atoms_moved) should always equal len(move_directions) should always equal nat_moved
-    stepsize = 0.01
     nat_moved = 1
     atoms_moved = [rand.randint(1,nat)] # system indices 1 to nat
     move_directions = [rand.randint(0,2)] # x:0, y:1, z:2
+    stepsize = 0.01
 
     # display atoms in system
-    print(f"\nTHIS SYSTEM HAS {nat} ATOM(S):\n")
+    print(f"\nTHIS SYSTEM HAS {nat} ATOM(S):")
     for k in range(nat):
         print(f"{k+1} : {symbols[k]}")
 
     '''prompt user about default translation settings'''
 
+    print("\nATOM(S) TO TRANSLATE:")
+    for i in range(nat_moved):
+        print(f"{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
     print("\nNUMBER OF STEPS:", n_steps)
     print("STEP SIZE:", stepsize)
-    print("ATOM(S) TO TRANSLATE:")
-    for i in range(nat_moved):
-        print(f"\n{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
 
     try:
         okay = input("\nTRANSLATION SETTINGS OKAY? (y/n): ")
@@ -261,15 +261,19 @@ def translation_prompt(nat, symbols, n_steps, axislist):
         print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
         okay = 'y'
 
-    while okay == 'n':
+    while okay.lower() == 'n':
 
         print('\n1 : ATOM(S) TO TRANSLATE')
         print('2 : NUMBER OF STEPS')
         print('3 : STEP DIRECTION(S)')
         print('4 : STEP SIZE')
 
-        # add try/except block later
-        selection = input('\nENTER A NUMBER TO CHANGE A SETTING: ')
+        try:
+            selection = int(input('\nENTER A NUMBER TO CHANGE A SETTING: '))
+            if not 0 < selection < 5:
+                print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
+        except:
+            print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
 
         if selection == '1': # number of translated atoms block
 
@@ -379,11 +383,11 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
         '''confirm settings'''
 
-        print("\nNUMBER OF STEPS:", n_steps)
-        print("STEP SIZE:", stepsize)
-        print("ATOM(S) TO TRANSLATE:\n")
+        print("\nATOM(S) TO TRANSLATE:")
         for i in range(nat_moved):
             print(f"{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
+        print("\nNUMBER OF STEPS:", n_steps)
+        print("STEP SIZE:", stepsize)
 
         try:
             okay = input('\nTRANSLATION SETTINGS OKAY? (y/n): ')
