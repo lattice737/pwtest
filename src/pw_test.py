@@ -229,10 +229,6 @@ def translation_prompt(nat, symbols, n_steps, axislist):
     print("\nNUMBER OF STEPS:", n_steps)
     print("STEP SIZE:", stepsize)
     print("ATOMS TO TRANSLATE:")
-    #print(symbols)
-    #print(atoms_moved)
-    #print(axislist)
-    #print(move_directions)
     for i in range(nat_moved):
         print(f"\n{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
 
@@ -284,32 +280,6 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                         else:
                             print('\nINVALID RESPONSE. NO CHANGES MADE')
                             atoms_moved.remove(atom)
-
-                    '''n-selected-atoms translated'''
-                    """
-                    print(f"\nTRANSLATED ATOMS MARKED BY ASTERISK (*)")
-                    for k in range(nat): # display translated atoms
-                        if k in atoms_moved:
-                            print(f"{k+1} : {symbols[k]} *")
-                        else:
-                            print(f"{k+1} : {symbols[k]}")
-
-                    another = input("CHOOSE ATOMS TO TRANSLATE? (y/n): ")
-                    while another.lower() == 'y':
-
-                        index = input("ENTER A NUMBER TO CHOOSE AN ATOM: ")
-                        if index not in atoms_moved:
-                            atoms_moved.append(index)
-
-                        print(f"\nTRANSLATED ATOMS MARKED BY ASTERISK (*)")
-                        for k in range(nat): # display atoms in system
-                            if k in atoms_moved:
-                                print(f"{k+1} : {symbols[k]} *")
-                            else:
-                                print(f"{k+1} : {symbols[k]}")
-
-                        another = input("\nCHOOSE ANOTHER ATOM? (y/n): ")
-                    """
 
                 else:
                     print("\nINVALID RESPONSE. ATOM(S) TRANSLATED NOT CHANGED")
@@ -486,22 +456,6 @@ def main():
     
     print()
     print(38 * '~', 'RUNNING', 38 * '~')
-    
-    # need to specify atom and direction to be changed here
-    # translate_prompt()
-    # translate(makepw)
-
-    # run initial input for initial output
-    #celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
-    #print('\nRUNNING INITIAL INPUT')
-    #os.system(f'{makepw} < pw.in > pw.out')
-    #print('COMPLETED INITIAL PW CALCULATION')
-    #E0, F0 = read_output('pw.out')
-    
-    # initialize lists
-    #pwEnergies, pwForces = [E0], [F0]
-    #calcforces = []
-    #errors = []
     
     # run tests
     natoms, increment, pwEnergies, pwForces = translate(makepw) # need step size, energies list, and forces list
