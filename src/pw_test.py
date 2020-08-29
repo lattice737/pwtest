@@ -58,7 +58,7 @@ def launch_prompt():
     # add receipt/log option for temporary runs
 
     try:
-        okay = input('\nSETTINGS OKAY? (y/n): ')
+        okay = input('\nFILE SETTINGS OKAY? (y/n): ')
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt: # end program when input is CTRL + C
@@ -138,7 +138,7 @@ def launch_prompt():
         print('INPUT/OUTPUT FILE TYPE:', ftype)
         
         try:
-            okay = input('\nSETTINGS OKAY? (y/n): ')
+            okay = input('\nFILE SETTINGS OKAY? (y/n): ')
             if okay.lower() != 'y': raise Exception
         
         except:
@@ -182,9 +182,11 @@ def read_input(txt):
                     
     return celldm1, nat, ntyp, symbols, positions
 
-def read_output(txt):
+def read_output(txt, nat, atoms_moved, move_directions):
     
     '''reads pw output; returns total energy & total force'''
+
+    force_components = ['n/a' for i in range(nat)]
 
     with open(txt) as f:
         
@@ -194,19 +196,30 @@ def read_output(txt):
 
             if strlist == []: continue # skip empty lines
                 
-            elif ' '.join(strlist[1:3]) == 'total energy' and strlist[-1] == 'Ry': etot = float( strlist[-2] ) # record total energy
-            force = float(-1) # dummy value until following routine completed
- 
-            # need atom moved & translation direction
-            #elif strlist[0] == 'atom' and strlist[1] == atom: # atom = translated atom index
-            #    fdir = rdir - 3 # rdir = translation direction
-            #    df = strlist[fdir]
+            elif ' '.join(strlist[1:3]) == 'total energy' and strlist[-1] == 'Ry':
+                etot = float( strlist[-2] ) # record total energy
+
+            elif ' '.join(strlist[:2]) == 'Forces acting': # find block with forces acting on atoms
+                
+                f.readline()
+                for v in range(nat):
+
+                    blocklinelist = f.readline().strip().split()
+
+                    #print(blocklinelist[1], atoms_moved, int(blocklinelist[1]) in atoms_moved)
+                    if int(blocklinelist[1]) in atoms_moved: # if atom index is in list of atoms to be moved
+                        
+                        atom_index = atoms_moved.index( int( blocklinelist[1] ) ) # atom index in system -> atom index in translated atoms list
+                        force_components[ move_directions[ atom_index ] ] = float(blocklinelist[ move_directions[ atom_index ] - 3 ]) # forces[ atom index ] = line[ axes [ atom index ] ]
+
+                    else:
+                        continue
 
     try:
-        return etot, force
+        return etot, force_components
     
     except:
-        print('\n!!! PW ERROR -- VALUES NOT FOUND IN OUTPUT !!!')
+        print('\n!!! ERROR -- VALUES NOT FOUND IN OUTPUT !!!')
         return -1, -1
 
 def translation_prompt(nat, symbols, n_steps, axislist):
@@ -220,7 +233,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
     move_directions = [rand.randint(0,2)] # x:0, y:1, z:2
 
     # display atoms in system
-    print(f"\nTHERE ARE {nat} ATOM(S)\n")
+    print(f"\nTHIS SYSTEM HAS {nat} ATOM(S):\n")
     for k in range(nat):
         print(f"{k+1} : {symbols[k]}")
 
@@ -233,13 +246,14 @@ def translation_prompt(nat, symbols, n_steps, axislist):
         print(f"\n{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
 
     try:
-        okay = input("\nDEFAULT SETTINGS OKAY? (y/n): ")
-        # check for input that is not y or n
+        okay = input("\nTRANSLATION SETTINGS OKAY? (y/n): ")
+        if okay.lower() != 'y' and okay.lower() != 'n':
+            print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt:
         print('\nEXITING PROGRAM. GOODBYE')
         exit()
     except:
-        # prompt about bad input
+        print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
         okay = 'y'
 
     while okay == 'n':
@@ -363,7 +377,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             print(f"{atoms_moved[i]} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
 
         try:
-            okay = input('\nSETTINGS OKAY? (y/n): ')
+            okay = input('\nTRANSLATION SETTINGS OKAY? (y/n): ')
             if okay != 'y' and okay != 'n':
                 raise Exception
         
@@ -375,28 +389,29 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
 def translate(pwx):
 
-    '''initialize translation lists & settings, allow user to change settings, and run translation routine'''
+    '''initialize translation settings & lists, allow user to change settings, and run translation routine'''
+
+    nsteps = 3 # number of translations
+    axes = ['x','y','z'] # axis string list
+
+    # read input file, but don't run until translation settings confirmed
+    celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
+
+    # confirm translation settings
+    atoms_to_translate, nsteps, translate_directions, step  = translation_prompt(natoms, names, nsteps, axes)
+
+    print()
+    print(38 * '~', 'RUNNING', 38 * '~')
 
     # run initial input for initial output
-    celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
-    print('\nRUNNING INITIAL INPUT')
+    print('\nRUNNING PW WITH INITIAL INPUT')
     os.system(f'{pwx} < pw.in > pw.out')
     print('COMPLETED INITIAL PW CALCULATION')
-    E0, F0 = read_output('pw.out')
+    E0, F0 = read_output('pw.out', natoms, atoms_to_translate, translate_directions)
 
     # initialize lists
     energies = [E0]
     forces = [F0]
-
-    # initialize translation values
-    #atom = rand.randint(0,nat-1) # random atom to translate -- move to translate()
-    #nat_moved = 1 # number of atoms moved
-    nsteps = 3 # number of translations
-    #rhat = rand.randint(0,2) # random direction -- 0 : x, 1 : y, 2 : z
-    axes = ['x','y','z']    
-    #step = 0.01
-
-    atoms_to_translate, nsteps, translate_directions, step  = translation_prompt(natoms, names, nsteps, axes) # returns atom indices to be moved, 
 
     '''translation routine -- uses variables n (# of steps), atom (translated), rhat (step direction), axes (axis strings)'''
 
@@ -417,7 +432,7 @@ def translate(pwx):
             for line in f:
                 
                 if line.strip() == 'ATOMIC_POSITIONS (bohr)': # find position block
-                    
+
                     test_input.write(line) # copy block title
                     for j in range(natoms): # write new position set
                         test_input.write(f"{names[j]}   {coordinates[j][0]}   {coordinates[j][1]}   {coordinates[j][2]}\n")
@@ -432,7 +447,7 @@ def translate(pwx):
         os.system(f'{pwx} < test.in{i} > test.out{i}') # run new pw calculation; proceeds after calculation
 
         #coordinates, newE, newF = read_pw_data(pwxml, needInput=False) # uses read_pw_data function -- moved to module
-        pwE, pwF = read_output(f'test.out{i}')
+        pwE, pwF = read_output(f'test.out{i}', natoms, atoms_to_translate, translate_directions)
         energies.append(pwE)
         forces.append(pwF)
         
@@ -441,8 +456,11 @@ def translate(pwx):
     print()
     print(32 * '~', 'PW TESTING COMPLETE', 32 * '~')
     print()
-        
-    return natoms, step, energies, forces # may need to return more
+    
+    # at this point, len(atoms_to_translate) = len(translate_directions) = len(forces) where each index has corresponding atomic translation data across lists
+    # atoms_to translate[index] : translate_directions[index] : forces[index] -- nth-atom index in system : nth-atom translation direction : nth-atom force component
+
+    return natoms, names, atoms_to_translate, translate_directions, step, energies, forces
 
 def main():
     """read initial pw results & evaluate pw results at new positions"""
@@ -454,11 +472,8 @@ def main():
     # present default settings and prompt user for changes
     makepw, ftype = launch_prompt()
     
-    print()
-    print(38 * '~', 'RUNNING', 38 * '~')
-    
     # run tests
-    natoms, increment, pwEnergies, pwForces = translate(makepw) # need step size, energies list, and forces list
+    natoms, symbols, mvatoms, mvdir, stepsize, pwEnergies, pwForces = translate(makepw) # returns nat, moved atoms, move directions, step size, and output energies & forces
 
     # remove test files
     try:
@@ -473,27 +488,40 @@ def main():
 
     except:
         print('\nSOMETHING WENT WRONG. FILES NOT REMOVED')
-    
-    """NEED STEP SIZE BELOW"""
 
     '''interpolate and compare'''
     
     calcForces = []
     errors = []
 
-    for f in range(1, len(pwEnergies) - 1):
-        
-        calcForces.append( -1 * round( (pwEnergies[f-1] - pwEnergies[f+1]) / (2 * increment), 6 ) )
-        errors.append( round(pwForces[f] - calcForces[f-1], 6) )
-    
-    '''display results'''
+    for a in range(1, len(pwEnergies) - 1):
+        calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
+    calcForces = ['n/a'] + calcForces + ['n/a']
 
-    print(f"\nOutput Energies : {pwEnergies}")
-    print(f"Output Forces : {pwForces}")
-    print(f"Differences : {['n/a'] + calcForces + ['n/a']}")
-    print(f"Error : {['n/a'] + errors + ['n/a']}")
+    print("\nFinite Differences")
+    for b in calcForces:
+        print(b)
+
+    print(pwForces)
+    for c in range(len(mvatoms)):
+
+        if mvdir[c] == 0: DIR = 'x'
+        elif mvdir[c] == 1: DIR = 'y'
+        elif mvdir[c] == 2: DIR = 'z'
+
+        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} ({DIR})")
+        for f in pwForces:
+            print(f[mvatoms[c]-1])
+
     print()
 
+    #for f in range(1, len(pwEnergies) - 1):
+    #    
+    #    print(pwForces)
+    #    print(calcForces)
+    #    calcForces.append( -1 * round( (pwEnergies[f-1] - pwEnergies[f+1]) / (2 * stepsize), 6 ) )
+    #    errors.append( round(pwForces[f] - calcForces[f-1], 6) )
+    
     # display results graphically?
 
 main()
@@ -504,6 +532,6 @@ main()
 # evaluate difference between finite difference and pw output (error) ***DONE***
 # future task: displace the other atoms in a random direction ***DONE***
 
-# force value to use from output should be from the atom changed in the direction changed
+# force value to use from output should be from the atom changed in the direction changed ***DONE***
 # manage temporary files differently
 # use a file to store user settings ***DONE***
