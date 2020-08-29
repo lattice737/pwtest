@@ -202,11 +202,10 @@ def read_output(txt, nat, atoms_moved, move_directions):
             elif ' '.join(strlist[:2]) == 'Forces acting': # find block with forces acting on atoms
                 
                 f.readline()
-                for v in range(nat):
+                for v in range(nat): # NOT WORKING -- INDEX ISSUES
 
                     blocklinelist = f.readline().strip().split()
 
-                    #print(blocklinelist[1], atoms_moved, int(blocklinelist[1]) in atoms_moved)
                     if int(blocklinelist[1]) in atoms_moved: # if atom index is in list of atoms to be moved
                         
                         atom_index = atoms_moved.index( int( blocklinelist[1] ) ) # atom index in system -> atom index in translated atoms list
@@ -317,13 +316,13 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             except:
                 print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
                 
-        elif selection == '3': # step direction block
+        elif selection == '3': # step direction block -- INCOMPLETE
             
             try:
                 
                 print("\nTRANSLATED ATOMS:")
                 for i in range(nat_moved):
-                    print(f"{i+1} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]} / ") # n-atom : symbol delta(x or y or z)
+                    print(f"{i+1} : {symbols[ atoms_moved[i]-1 ]} \u0394{axislist[ move_directions[i] ]}") # n-atom : symbol delta(x or y or z)
                 atom = input("\nENTER A NUMBER TO CHANGE AN ATOM'S TRANSLATION DIRECTION (Enter IF DONE): ")
 
                 while atom in nat_moved:
@@ -498,11 +497,17 @@ def main():
         calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
     calcForces = ['n/a'] + calcForces + ['n/a']
 
+    print("\nOutput Forces [ oxygen, hydrogen, hydrogen ]")
+    for z in range(len(pwForces)):
+        if z == 0:
+            print(f"Initial Run: {pwForces[z]}")
+        else:
+            print(f"Test Run {z}: {pwForces[z]}")
+
     print("\nFinite Differences")
     for b in calcForces:
         print(b)
 
-    print(pwForces)
     for c in range(len(mvatoms)):
 
         if mvdir[c] == 0: DIR = 'x'
@@ -510,17 +515,10 @@ def main():
         elif mvdir[c] == 2: DIR = 'z'
 
         print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} ({DIR})")
-        for f in pwForces:
-            print(f[mvatoms[c]-1])
+        for f in pwForces: # does not work when oxygen is translated in the y direction
+            print(f[mvatoms[c]])
 
     print()
-
-    #for f in range(1, len(pwEnergies) - 1):
-    #    
-    #    print(pwForces)
-    #    print(calcForces)
-    #    calcForces.append( -1 * round( (pwEnergies[f-1] - pwEnergies[f+1]) / (2 * stepsize), 6 ) )
-    #    errors.append( round(pwForces[f] - calcForces[f-1], 6) )
     
     # display results graphically?
 
