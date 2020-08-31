@@ -211,7 +211,7 @@ def read_output(txt, nat, atoms_moved, move_directions):
                         atom_sysindex = int(blocklinelist[1]) # atom index in system from 1 to nat
                         for w in range(len(atoms_moved)):
 
-                            if int(atoms_moved[w]) == atom_sysindex:
+                            if int(atoms_moved[w]) == atom_sysindex: # 
                                 atom_listindex = int(atoms_moved[w]) - 1 # index in system -> index in list
                             else: continue
 
@@ -406,7 +406,7 @@ def translate(pwx):
 
     '''initialize translation settings & lists, allow user to change settings, and run translation routine'''
 
-    nsteps = 3 # number of translations
+    nsteps = 3 # number of translations, default 3
     axes = ['x','y','z'] # axis string list
 
     # read input file, but don't run until translation settings confirmed
