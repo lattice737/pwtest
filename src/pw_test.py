@@ -530,7 +530,7 @@ def main():
         elif mvdir[c] == 1: DIR = 'y'
         elif mvdir[c] == 2: DIR = 'z'
 
-        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} ({DIR})")
+        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{DIR})")
         for f in pwForces:
             print(f[mvatoms[c]-1])
 
