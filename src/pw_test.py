@@ -513,7 +513,7 @@ def main():
         calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
     calcForces = ['n/a'] + calcForces + ['n/a']
 
-    print("\nOutput Forces [ atom1, atom2, atom3 ]")
+    print("\nOutput Forces [ atom1, atom2, atom3, etc ]")
     for z in range(len(pwForces)):
         if z == 0:
             print(f"Initial Run: {pwForces[z]}")
