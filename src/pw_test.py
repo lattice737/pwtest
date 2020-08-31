@@ -373,6 +373,8 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                     other = input('\nUSE YOUR OWN VALUE? (y/n): ')
                     if other.lower() == 'y':
                         stepsize = float(input('ENTER A VALUE: '))
+                    else:
+                        print('\nINVALID RESPONSE. STEP SIZE NOT CHANGED')
                 else:
                     step = 0.01
                 
