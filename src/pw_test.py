@@ -275,7 +275,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
         except:
             print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
 
-        if selection == '1': # number of translated atoms block
+        if selection == 1: # number of translated atoms block
 
             try:
                 # shows atoms to be translated
@@ -312,7 +312,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                 print(f"\nSOMETHING WENT WRONG. ATOM(S) TRANSLATED NOT CHANGED")
                 atoms_moved.remove(atom)
 
-        elif selection == '2': # number of steps block
+        elif selection == 2: # number of steps block
             
             try:
                 
@@ -326,7 +326,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             except:
                 print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
                 
-        elif selection == '3': # step direction block
+        elif selection == 3: # step direction block
             
             try:
                 
@@ -361,7 +361,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             except:
                 print('\nSOMETHING WENT WRONG. STEP DIRECTION NOT CHANGED')
                 
-        elif selection == '4': # step size block
+        elif selection == 4: # step size block
             
             try:
                 print('\nCURRENT STEP SIZE:', stepsize)
