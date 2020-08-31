@@ -529,7 +529,7 @@ def main():
         elif mvdir[c] == 2: DIR = 'z'
 
         print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} ({DIR})")
-        for f in pwForces: # does not work when oxygen is translated in the y direction
+        for f in pwForces:
             print(f[mvatoms[c]-1])
 
     print()
