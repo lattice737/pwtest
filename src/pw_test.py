@@ -610,7 +610,7 @@ def main():
         #z = np.polyfit(x[1:-1], y2, 1) # linear fitting
         #p = np.poly1d(z)
         s2 = UnivariateSpline(x[1:-1], y2, s=1) # curvilinear fitting
-        xs2 = np.linspace(0, (len(y2) - 1) * stepsize, 100)
+        xs2 = np.linspace(0, (len(y2)+2) * stepsize, 100)
         ys2 = s2(xs2)
 
         plt.scatter(x, y1, c='b') # scatter method, not plot
