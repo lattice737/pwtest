@@ -9,6 +9,9 @@ Created on Sat Jul 18 09:20:03 2020
 import os
 import random as rand
 
+# future development
+# console formatting -- https://stackoverflow.com/questions/9989334/create-nice-column-output-in-python
+
 def launch_prompt():
     
     '''prompts user about program running and default settings; user can change settings'''
@@ -61,10 +64,11 @@ def launch_prompt():
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt: # end program when input is CTRL + C
-        print('\nEXITING PROGRAM. GOODBYE')
+        print('\nEXITING PROGRAM. GOODBYE\n')
         exit()
-    except:
-        print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
+    except Exception as e:
+        print(f'\nSOMETHING WENT WRONG: {e}')
+        print('CURRENT SETTINGS WILL BE USED')
         okay = 'y'
     
     while okay.lower() == 'n': # menu block
@@ -140,7 +144,8 @@ def launch_prompt():
             okay = input('\nFILE SETTINGS OKAY? (y/n): ')
             if okay.lower() != 'y': raise Exception
         
-        except:
+        except Exception as e:
+            print(f'\nSOMETHING WENT WRONG: {e}')
             okay = 'n'
         
     #os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
@@ -254,7 +259,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt:
-        print('\nEXITING PROGRAM. GOODBYE')
+        print('\nEXITING PROGRAM. GOODBYE\n')
         exit()
     except:
         print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
@@ -371,7 +376,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                 random = input('USE RANDOM? (y/n): ')
                 
                 if random.lower() == 'y':
-                    stepsize = round(rand.uniform(-0.01,0.01), 4) # one small random step size to use for all difference calculations
+                    stepsize = round(rand.uniform(0,0.1), 4) # one small random step size to use for all difference calculations
                 elif random == 'n':
                     other = input('\nUSE YOUR OWN VALUE? (y/n): ')
                     if other.lower() == 'y':
@@ -496,7 +501,7 @@ def main():
     try:
         delete = input('PERMANENTLY REMOVE TEMPORARY FILES? (y/n): ')
         
-        if delete.lower() == 'y':
+        if delete.lower() == 'y': # does not check for remaining temp files in directory
             for i in range(1,natoms+1): os.remove(f'test.in{i}')
             for i in range(1,natoms+1): os.remove(f'test.out{i}')
 
@@ -541,6 +546,8 @@ def main():
 
     print()
     
+    '''plot'''
+
     import matplotlib.pyplot as plt
     import numpy as np
     from scipy.interpolate import UnivariateSpline
@@ -549,7 +556,7 @@ def main():
 
     # plot pw output and best fit curve
     y1 = np.array(pwForcelist)
-    s = UnivariateSpline(x, y1, s=0)
+    s = UnivariateSpline(x, y1, s=1)
     xs = np.linspace(0, (len(y1)-1) * stepsize, 100)
     ys = s(xs)
 
@@ -558,14 +565,9 @@ def main():
     z = np.polyfit(x[1:-1], y2, 1) # best fit line
     p = np.poly1d(z)
 
-    #print(x)
-    #print(y1)
-    #print(x[1:-1])
-    #print(y2)
-
     plt.scatter(x, y1, c='r') # scatter method, not plot
     plt.scatter(x[1:-1], y2, c='b')
-    plt.plot(x, p(x), "r")
+    plt.plot(x, p(x), "r--")
     plt.plot(xs, ys)
 
     plt.xlabel(f'\u0394{axis}')
