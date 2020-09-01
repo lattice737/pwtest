@@ -566,11 +566,11 @@ def main():
         elif mvdir[c] == 1: axis = 'y'
         elif mvdir[c] == 2: axis = 'z'
 
-        #print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})")
+        #print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})") # output for testing
     
         pwForcelist = []
         for f in pwForces:
-            #print(f[ mvatoms[c]-1 ])
+            #print(f[ mvatoms[c]-1 ]) # output for testing
             pwForcelist.append(f[mvatoms[c]-1])
 
     print()
