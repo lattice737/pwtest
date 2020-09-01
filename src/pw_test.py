@@ -7,10 +7,33 @@ Created on Sat Jul 18 09:20:03 2020
 """
 
 import os
+import time
 import random as rand
 
 # future development
 # console formatting -- https://stackoverflow.com/questions/9989334/create-nice-column-output-in-python
+# handle console note: IEEE_UNDERFLOW_FLAG
+
+def track_progress(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar -- https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
 
 def launch_prompt():
     
@@ -413,7 +436,7 @@ def translate(pwx):
 
     '''initialize translation settings & lists, allow user to change settings, and run translation routine'''
 
-    nsteps = 3 # number of translations, default 3
+    nsteps = 5 # number of translations, default 3
     axes = ['x','y','z'] # axis string list
 
     # read input file, but don't run until translation settings confirmed
@@ -428,7 +451,7 @@ def translate(pwx):
     # run initial input for initial output
     print('\nRUNNING PW WITH INITIAL INPUT')
     os.system(f'{pwx} < pw.in > pw.out')
-    print('COMPLETED INITIAL PW CALCULATION')
+    print('COMPLETED INITIAL PW CALCULATION\n')
     E0, F0 = read_output('pw.out', natoms, atoms_to_translate, translate_directions)
 
     # initialize lists
@@ -437,9 +460,10 @@ def translate(pwx):
 
     '''translation routine -- uses variables n (# of steps), atom (translated), rhat (step direction), axes (axis strings)'''
 
+    track_progress(0, nsteps, prefix='TESTING', suffix='COMPLETE', length=50)
     for i in range(1,nsteps+1): # multiple pw runs
         
-        print(f'\nRUNNING TEST ITERATION {i}')
+        #print(f'\nRUNNING TEST ITERATION {i}')
 
         for o in range(len(atoms_to_translate)): # change positions of all atoms to be translated
             coordinates[ atoms_to_translate[o] - 1 ][ translate_directions[o] ] += step # increment position
@@ -473,7 +497,9 @@ def translate(pwx):
         energies.append(pwE)
         forces.append(pwF)
         
-        print(f'COMPLETED TEST ITERATION {i}')
+        #print(f'COMPLETED TEST ITERATION {i}')
+        time.sleep(0.1)
+        track_progress(i, nsteps, prefix='TESTING', suffix='COMPLETE', length=50)
     
     print()
     print(32 * '~', 'PW TESTING COMPLETE', 32 * '~')
@@ -499,11 +525,11 @@ def main():
 
     # remove test files
     try:
-        delete = input('PERMANENTLY REMOVE TEMPORARY FILES? (y/n): ')
+        delete = input(f'PERMANENTLY REMOVE {2*numsteps} TEMPORARY FILES? (y/n): ')
         
         if delete.lower() == 'y': # does not check for remaining temp files in directory
-            for i in range(1,natoms+1): os.remove(f'test.in{i}')
-            for i in range(1,natoms+1): os.remove(f'test.out{i}')
+            for i in range(1,numsteps+1): os.remove(f'test.in{i}')
+            for i in range(1,numsteps+1): os.remove(f'test.out{i}')
 
         else:
             print('\nNO APPROVAL: FILES NOT REMOVED')
@@ -520,6 +546,9 @@ def main():
         calcForcelist.append( round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
     calcForces = ['n/a'] + calcForcelist + ['n/a']
 
+    '''
+    # output for testing
+
     print("\nOutput Forces [ atom1, atom2, atom3, etc ]")
     for z in range(len(pwForces)):
         if z == 0:
@@ -530,6 +559,7 @@ def main():
     print("\nFinite Differences")
     for b in calcForces:
         print(b)
+    '''
 
     for c in range(len(mvatoms)):
 
@@ -537,11 +567,11 @@ def main():
         elif mvdir[c] == 1: axis = 'y'
         elif mvdir[c] == 2: axis = 'z'
 
-        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})")
-
+        #print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})")
+    
         pwForcelist = []
         for f in pwForces:
-            print(f[ mvatoms[c]-1 ])
+            #print(f[ mvatoms[c]-1 ])
             pwForcelist.append(f[mvatoms[c]-1])
 
     print()
@@ -565,10 +595,10 @@ def main():
     z = np.polyfit(x[1:-1], y2, 1) # best fit line
     p = np.poly1d(z)
 
-    plt.scatter(x, y1, c='r') # scatter method, not plot
-    plt.scatter(x[1:-1], y2, c='b')
-    plt.plot(x, p(x), "r--")
-    plt.plot(xs, ys)
+    plt.scatter(x, y1, c='b') # scatter method, not plot
+    plt.scatter(x[1:-1], y2, c='r')
+    plt.plot(xs, ys) # y1 fitting
+    plt.plot(x, p(x), "r--") # y2 fitting
 
     plt.xlabel(f'\u0394{axis}')
     plt.ylabel('Force (N)')
