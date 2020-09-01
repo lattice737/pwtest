@@ -48,7 +48,6 @@ def launch_prompt():
             print("CURRENT LOCATION OF PW.X:", pwstr)
 
     except:
-        print('exception raised')
         workdir = '/'.join(workdir)
         print("\nCURRENT WORKING DIRECTORY:", workdir)
         print("CURRENT LOCATION OF PW.X:", pwx)
@@ -272,8 +271,10 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             selection = int(input('\nENTER A NUMBER TO CHANGE A SETTING: '))
             if not 0 < selection < 5:
                 print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
+                okay = 'y'
         except:
             print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
+            okay = 'y'
 
         if selection == 1: # number of translated atoms block
 
@@ -317,14 +318,16 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             try:
                 
                 print('\nCURRENT NUMBER OF STEPS:', n_steps)
-                n_steps = input('ENTER NUMBER OF STEPS TO TAKE: ')
+                n_steps = int(input('ENTER NUMBER OF STEPS TO TAKE: '))
                 if 0 < n_steps <= 20:
                     print('NEW NUMBER OF STEPS:', n_steps)
                 elif n_steps > 20:
-                    print('WARNING: NEW NUMBER OF STEPS IS LARGE (GREATER THAN 20)')
+                    print('\nWARNING: NEW NUMBER OF STEPS IS LARGE (GREATER THAN 20)')
+                    print('NEW NUMBER OF STEPS:', n_steps)
                 
-            except:
-                print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
+            except Exception as e:
+                print(f'\nSOMETHING WENT WRONG: {e} -- NUMBER OF STEPS NOT CHANGED')
+                n_steps = 3 # default chosen arbitrarily
                 
         elif selection == 3: # step direction block
             
@@ -393,12 +396,11 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
         try:
             okay = input('\nTRANSLATION SETTINGS OKAY? (y/n): ')
-            if okay.lower() != 'y' and okay.lower() != 'n':
-                print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
+            if okay.lower() != 'y':
+                raise Exception
         
         except:
-            print("\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED")
-            okay = 'y'
+            okay = 'n'
 
     return atoms_moved, n_steps, move_directions, stepsize # in menu order
 
@@ -475,7 +477,7 @@ def translate(pwx):
     # at this point, len(atoms_to_translate) = len(translate_directions) = len(forces) where each index has corresponding atomic translation data across lists
     # atoms_to translate[index] : translate_directions[index] : forces[index] -- nth-atom index in system : nth-atom translation direction : nth-atom force component
 
-    return natoms, names, atoms_to_translate, translate_directions, step, energies, forces
+    return natoms, names, atoms_to_translate, translate_directions, nsteps, step, energies, forces
 
 def main():
     """read initial pw results & evaluate pw results at new positions"""
@@ -488,7 +490,7 @@ def main():
     makepw, ftype = launch_prompt()
     
     # run tests
-    natoms, symbols, mvatoms, mvdir, stepsize, pwEnergies, pwForces = translate(makepw) # returns nat, moved atoms, move directions, step size, and output energies & forces
+    natoms, symbols, mvatoms, mvdir, numsteps, stepsize, pwEnergies, pwForces = translate(makepw) # returns nat, moved atoms, move directions, step size, and output energies & forces
 
     # remove test files
     try:
@@ -506,12 +508,12 @@ def main():
 
     '''interpolate and compare'''
     
-    calcForces = []
+    calcForcelist = []
     errors = []
 
     for a in range(1, len(pwEnergies) - 1):
-        calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
-    calcForces = ['n/a'] + calcForces + ['n/a']
+        calcForcelist.append( round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
+    calcForces = ['n/a'] + calcForcelist + ['n/a']
 
     print("\nOutput Forces [ atom1, atom2, atom3, etc ]")
     for z in range(len(pwForces)):
@@ -526,17 +528,50 @@ def main():
 
     for c in range(len(mvatoms)):
 
-        if mvdir[c] == 0: DIR = 'x'
-        elif mvdir[c] == 1: DIR = 'y'
-        elif mvdir[c] == 2: DIR = 'z'
+        if mvdir[c] == 0: axis = 'x'
+        elif mvdir[c] == 1: axis = 'y'
+        elif mvdir[c] == 2: axis = 'z'
 
-        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{DIR})")
+        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})")
+
+        pwForcelist = []
         for f in pwForces:
-            print(f[mvatoms[c]-1])
+            print(f[ mvatoms[c]-1 ])
+            pwForcelist.append(f[mvatoms[c]-1])
 
     print()
     
-    # display results graphically?
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from scipy.interpolate import UnivariateSpline
+
+    x = np.arange(0, numsteps * stepsize + stepsize, stepsize)
+
+    # plot pw output and best fit curve
+    y1 = np.array(pwForcelist)
+    s = UnivariateSpline(x, y1, s=0)
+    xs = np.linspace(0, (len(y1)-1) * stepsize, 100)
+    ys = s(xs)
+
+    # plot finite difference and interpolation
+    y2 = np.array(calcForcelist)
+    z = np.polyfit(x[1:-1], y2, 1) # best fit line
+    p = np.poly1d(z)
+
+    #print(x)
+    #print(y1)
+    #print(x[1:-1])
+    #print(y2)
+
+    plt.scatter(x, y1, c='r') # scatter method, not plot
+    plt.scatter(x[1:-1], y2, c='b')
+    plt.plot(x, p(x), "r")
+    plt.plot(xs, ys)
+
+    plt.xlabel(f'\u0394{axis}')
+    plt.ylabel('Force (N)')
+
+    plt.show()
 
 main()
 
