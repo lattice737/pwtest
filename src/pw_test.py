@@ -27,12 +27,11 @@ def track_progress(iteration, total, prefix = '', suffix = '', decimals = 1, len
         fill        - Optional  : bar fill character (Str)
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    percent = f"{iteration}/{total} TESTS"
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
+    print(f'\r{prefix} |{bar}| {percent} {suffix}', end = printEnd)
+    if iteration == total: # print blank line when complete
         print()
 
 def launch_prompt():
@@ -404,8 +403,12 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                     other = input('\nUSE YOUR OWN VALUE? (y/n): ')
                     if other.lower() == 'y':
                         stepsize = float(input('ENTER A VALUE: '))
+                        if stepsize >= 1.0:
+                            print(f"{stepsize} IS TOO LARGE")
+                            stepsize = 0.01
                     else:
                         print('\nINVALID RESPONSE. STEP SIZE NOT CHANGED')
+                        stepsize = 0.01
                 else:
                     step = 0.01
                 
@@ -575,35 +578,55 @@ def main():
             pwForcelist.append(f[mvatoms[c]-1])
 
     print()
+
+    '''table -- NOT WORKING'''
+
+    try:
+        from pandas import DataFrame
+        DataFrame( { 'Output Forces' : pwForcelist, # add difference
+                 'Finite Forces' : calcForces})
+
+    except Exception as e:
+        print(f"AN ERROR OCCURRED: {e}")
+        print()
     
-    '''plot'''
+    '''plot -- WORKING'''
 
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from scipy.interpolate import UnivariateSpline
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from scipy.interpolate import UnivariateSpline
 
-    x = np.arange(0, numsteps * stepsize + stepsize, stepsize)
+        x = np.arange(0, numsteps * stepsize + stepsize, stepsize)
 
-    # plot pw output and best fit curve
-    y1 = np.array(pwForcelist)
-    s = UnivariateSpline(x, y1, s=1)
-    xs = np.linspace(0, (len(y1)-1) * stepsize, 100)
-    ys = s(xs)
+        # plot pw output and best fit curve
+        y1 = np.array(pwForcelist)
+        s1 = UnivariateSpline(x, y1, s=1)
+        xs1 = np.linspace(0, (len(y1) - 1) * stepsize, 100)
+        ys1 = s1(xs1)
 
-    # plot finite difference and interpolation
-    y2 = np.array(calcForcelist)
-    z = np.polyfit(x[1:-1], y2, 1) # best fit line
-    p = np.poly1d(z)
+        # plot finite difference and best fit curve
+        y2 = np.array(calcForcelist)
+        #z = np.polyfit(x[1:-1], y2, 1) # linear fitting
+        #p = np.poly1d(z)
+        s2 = UnivariateSpline(x[1:-1], y2, s=1) # curvilinear fitting
+        xs2 = np.linspace(0, (len(y2) - 1) * stepsize, 100)
+        ys2 = s2(xs2)
 
-    plt.scatter(x, y1, c='b') # scatter method, not plot
-    plt.scatter(x[1:-1], y2, c='r')
-    plt.plot(xs, ys) # y1 fitting
-    plt.plot(x, p(x), "r--") # y2 fitting
+        plt.scatter(x, y1, c='b') # scatter method, not plot
+        plt.scatter(x[1:-1], y2, c='r')
+        plt.plot(xs1, ys1) # y1 fitting
+        #plt.plot(x, p(x), "r--") # y2 linear fitting
+        plt.plot(xs2, ys2)
 
-    plt.xlabel(f'\u0394{axis}')
-    plt.ylabel('Force (N)')
+        plt.xlabel(f'\u0394{axis}')
+        plt.ylabel('Force (N)')
 
-    plt.show()
+        plt.show()
+    
+    except Exception as e:
+        print(f'AN ERROR OCCURRED: {e}')
+        print()
 
 main()
 
