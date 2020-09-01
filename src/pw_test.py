@@ -10,10 +10,6 @@ import os
 import time
 import random as rand
 
-# future development
-# console formatting -- https://stackoverflow.com/questions/9989334/create-nice-column-output-in-python
-# handle console note: IEEE_UNDERFLOW_FLAG
-
 def track_progress(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
     Call in a loop to create terminal progress bar -- https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
@@ -610,7 +606,7 @@ def main():
         #z = np.polyfit(x[1:-1], y2, 1) # linear fitting
         #p = np.poly1d(z)
         s2 = UnivariateSpline(x[1:-1], y2, s=1) # curvilinear fitting
-        xs2 = np.linspace(0, (len(y2)+2) * stepsize, 100)
+        xs2 = np.linspace(0, (len(y2)+2) * stepsize, 100) # DOESN'T WORK WITH LEN(Y2)+1 ??
         ys2 = s2(xs2)
 
         plt.scatter(x, y1, c='b') # scatter method, not plot
@@ -639,3 +635,9 @@ main()
 # force value to use from output should be from the atom changed in the direction changed ***DONE***
 # manage temporary files differently
 # use a file to store user settings ***DONE***
+
+# future development
+# change to consistent variable names with flags when passed to functions (i.e. nsteps -> nstepsTranslate -> nstepsTranslationPrompt -> )
+# console formatting -- https://stackoverflow.com/questions/9989334/create-nice-column-output-in-python
+# handle console note: IEEE_UNDERFLOW_FLAG
+# add logging
