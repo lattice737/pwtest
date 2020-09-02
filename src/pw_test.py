@@ -579,9 +579,10 @@ def main():
 
     try:
         from pandas import DataFrame
-        DataFrame( { 'Output Forces' : pwForcelist, # add difference
+        DataFrame( { 'Output Forces' : pwForcelist,
                  'Finite Forces' : calcForces})
-
+        # add difference
+    
     except Exception as e:
         print(f"AN ERROR OCCURRED: {e}")
         print()
@@ -623,6 +624,16 @@ def main():
     except Exception as e:
         print(f'AN ERROR OCCURRED: {e}')
         print()
+
+    again = input('RUN AGAIN?: ')
+    if again.lower() == 'y':
+        print('\n\n')
+        main()
+    else:
+        print('GOODBYE\n')
+        quit()
+
+
 
 main()
 
