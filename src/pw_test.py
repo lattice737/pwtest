@@ -7,7 +7,28 @@ Created on Sat Jul 18 09:20:03 2020
 """
 
 import os
+import time
 import random as rand
+
+def track_progress(iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar -- https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = f"{iteration}/{total} TESTS"
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent} {suffix}', end = printEnd)
+    if iteration == total: # print blank line when complete
+        print()
 
 def launch_prompt():
     
@@ -48,7 +69,6 @@ def launch_prompt():
             print("CURRENT LOCATION OF PW.X:", pwstr)
 
     except:
-        print('exception raised')
         workdir = '/'.join(workdir)
         print("\nCURRENT WORKING DIRECTORY:", workdir)
         print("CURRENT LOCATION OF PW.X:", pwx)
@@ -62,10 +82,11 @@ def launch_prompt():
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt: # end program when input is CTRL + C
-        print('\nEXITING PROGRAM. GOODBYE')
+        print('\nEXITING PROGRAM. GOODBYE\n')
         exit()
-    except:
-        print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
+    except Exception as e:
+        print(f'\nSOMETHING WENT WRONG: {e}')
+        print('CURRENT SETTINGS WILL BE USED')
         okay = 'y'
     
     while okay.lower() == 'n': # menu block
@@ -141,7 +162,8 @@ def launch_prompt():
             okay = input('\nFILE SETTINGS OKAY? (y/n): ')
             if okay.lower() != 'y': raise Exception
         
-        except:
+        except Exception as e:
+            print(f'\nSOMETHING WENT WRONG: {e}')
             okay = 'n'
         
     #os.chdir('/Users/nicholas/gitwork/pwtest/test') # developer machine
@@ -255,7 +277,7 @@ def translation_prompt(nat, symbols, n_steps, axislist):
         if okay.lower() != 'y' and okay.lower() != 'n':
             print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
     except KeyboardInterrupt:
-        print('\nEXITING PROGRAM. GOODBYE')
+        print('\nEXITING PROGRAM. GOODBYE\n')
         exit()
     except:
         print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
@@ -272,8 +294,10 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             selection = int(input('\nENTER A NUMBER TO CHANGE A SETTING: '))
             if not 0 < selection < 5:
                 print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
+                okay = 'y'
         except:
             print('\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED')
+            okay = 'y'
 
         if selection == 1: # number of translated atoms block
 
@@ -317,14 +341,16 @@ def translation_prompt(nat, symbols, n_steps, axislist):
             try:
                 
                 print('\nCURRENT NUMBER OF STEPS:', n_steps)
-                n_steps = input('ENTER NUMBER OF STEPS TO TAKE: ')
+                n_steps = int(input('ENTER NUMBER OF STEPS TO TAKE: '))
                 if 0 < n_steps <= 20:
                     print('NEW NUMBER OF STEPS:', n_steps)
                 elif n_steps > 20:
-                    print('WARNING: NEW NUMBER OF STEPS IS LARGE (GREATER THAN 20)')
+                    print('\nWARNING: NEW NUMBER OF STEPS IS LARGE (GREATER THAN 20)')
+                    print('NEW NUMBER OF STEPS:', n_steps)
                 
-            except:
-                print('\nSOMETHING WENT WRONG. NUMBER OF STEPS NOT CHANGED')
+            except Exception as e:
+                print(f'\nSOMETHING WENT WRONG: {e} -- NUMBER OF STEPS NOT CHANGED')
+                n_steps = 3 # default chosen arbitrarily
                 
         elif selection == 3: # step direction block
             
@@ -368,13 +394,17 @@ def translation_prompt(nat, symbols, n_steps, axislist):
                 random = input('USE RANDOM? (y/n): ')
                 
                 if random.lower() == 'y':
-                    stepsize = round(rand.uniform(-0.01,0.01), 4) # one small random step size to use for all difference calculations
+                    stepsize = round(rand.uniform(0,0.1), 4) # one small random step size to use for all difference calculations
                 elif random == 'n':
                     other = input('\nUSE YOUR OWN VALUE? (y/n): ')
                     if other.lower() == 'y':
                         stepsize = float(input('ENTER A VALUE: '))
+                        if stepsize >= 1.0:
+                            print(f"{stepsize} IS TOO LARGE")
+                            stepsize = 0.01
                     else:
                         print('\nINVALID RESPONSE. STEP SIZE NOT CHANGED')
+                        stepsize = 0.01
                 else:
                     step = 0.01
                 
@@ -393,12 +423,11 @@ def translation_prompt(nat, symbols, n_steps, axislist):
 
         try:
             okay = input('\nTRANSLATION SETTINGS OKAY? (y/n): ')
-            if okay.lower() != 'y' and okay.lower() != 'n':
-                print('\nINVALID RESPONSE. CURRENT SETTINGS WILL BE USED')
+            if okay.lower() != 'y':
+                raise Exception
         
         except:
-            print("\nSOMETHING WENT WRONG. CURRENT SETTINGS WILL BE USED")
-            okay = 'y'
+            okay = 'n'
 
     return atoms_moved, n_steps, move_directions, stepsize # in menu order
 
@@ -406,7 +435,7 @@ def translate(pwx):
 
     '''initialize translation settings & lists, allow user to change settings, and run translation routine'''
 
-    nsteps = 3 # number of translations, default 3
+    nsteps = 5 # number of translations, default 3
     axes = ['x','y','z'] # axis string list
 
     # read input file, but don't run until translation settings confirmed
@@ -421,7 +450,7 @@ def translate(pwx):
     # run initial input for initial output
     print('\nRUNNING PW WITH INITIAL INPUT')
     os.system(f'{pwx} < pw.in > pw.out')
-    print('COMPLETED INITIAL PW CALCULATION')
+    print('COMPLETED INITIAL PW CALCULATION\n')
     E0, F0 = read_output('pw.out', natoms, atoms_to_translate, translate_directions)
 
     # initialize lists
@@ -430,9 +459,10 @@ def translate(pwx):
 
     '''translation routine -- uses variables n (# of steps), atom (translated), rhat (step direction), axes (axis strings)'''
 
+    track_progress(0, nsteps, prefix='TESTING', suffix='COMPLETE', length=50)
     for i in range(1,nsteps+1): # multiple pw runs
         
-        print(f'\nRUNNING TEST ITERATION {i}')
+        #print(f'\nRUNNING TEST ITERATION {i}')
 
         for o in range(len(atoms_to_translate)): # change positions of all atoms to be translated
             coordinates[ atoms_to_translate[o] - 1 ][ translate_directions[o] ] += step # increment position
@@ -466,7 +496,9 @@ def translate(pwx):
         energies.append(pwE)
         forces.append(pwF)
         
-        print(f'COMPLETED TEST ITERATION {i}')
+        #print(f'COMPLETED TEST ITERATION {i}')
+        time.sleep(0.1)
+        track_progress(i, nsteps, prefix='TESTING', suffix='COMPLETE', length=50)
     
     print()
     print(32 * '~', 'PW TESTING COMPLETE', 32 * '~')
@@ -475,7 +507,7 @@ def translate(pwx):
     # at this point, len(atoms_to_translate) = len(translate_directions) = len(forces) where each index has corresponding atomic translation data across lists
     # atoms_to translate[index] : translate_directions[index] : forces[index] -- nth-atom index in system : nth-atom translation direction : nth-atom force component
 
-    return natoms, names, atoms_to_translate, translate_directions, step, energies, forces
+    return natoms, names, atoms_to_translate, translate_directions, nsteps, step, energies, forces
 
 def main():
     """read initial pw results & evaluate pw results at new positions"""
@@ -488,15 +520,15 @@ def main():
     makepw, ftype = launch_prompt()
     
     # run tests
-    natoms, symbols, mvatoms, mvdir, stepsize, pwEnergies, pwForces = translate(makepw) # returns nat, moved atoms, move directions, step size, and output energies & forces
+    natoms, symbols, mvatoms, mvdir, numsteps, stepsize, pwEnergies, pwForces = translate(makepw) # returns nat, moved atoms, move directions, step size, and output energies & forces
 
     # remove test files
     try:
-        delete = input('PERMANENTLY REMOVE TEMPORARY FILES? (y/n): ')
+        delete = input(f'PERMANENTLY REMOVE {2*numsteps} TEMPORARY FILES? (y/n): ')
         
-        if delete.lower() == 'y':
-            for i in range(1,natoms+1): os.remove(f'test.in{i}')
-            for i in range(1,natoms+1): os.remove(f'test.out{i}')
+        if delete.lower() == 'y': # does not check for remaining temp files in directory
+            for i in range(1,numsteps+1): os.remove(f'test.in{i}')
+            for i in range(1,numsteps+1): os.remove(f'test.out{i}')
 
         else:
             print('\nNO APPROVAL: FILES NOT REMOVED')
@@ -506,12 +538,15 @@ def main():
 
     '''interpolate and compare'''
     
-    calcForces = []
+    calcForcelist = []
     errors = []
 
     for a in range(1, len(pwEnergies) - 1):
-        calcForces.append( -1 * round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
-    calcForces = ['n/a'] + calcForces + ['n/a']
+        calcForcelist.append( round( (pwEnergies[a-1] - pwEnergies[a+1]) / (2 * stepsize), 6 ) )
+    calcForces = ['n/a'] + calcForcelist + ['n/a']
+
+    '''
+    # output for testing
 
     print("\nOutput Forces [ atom1, atom2, atom3, etc ]")
     for z in range(len(pwForces)):
@@ -523,20 +558,82 @@ def main():
     print("\nFinite Differences")
     for b in calcForces:
         print(b)
+    '''
 
     for c in range(len(mvatoms)):
 
-        if mvdir[c] == 0: DIR = 'x'
-        elif mvdir[c] == 1: DIR = 'y'
-        elif mvdir[c] == 2: DIR = 'z'
+        if mvdir[c] == 0: axis = 'x'
+        elif mvdir[c] == 1: axis = 'y'
+        elif mvdir[c] == 2: axis = 'z'
 
-        print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{DIR})")
+        #print(f"\n{mvatoms[c]} : {symbols[mvatoms[c]-1]} (\u0394{axis})") # output for testing
+    
+        pwForcelist = []
         for f in pwForces:
-            print(f[mvatoms[c]-1])
+            #print(f[ mvatoms[c]-1 ]) # output for testing
+            pwForcelist.append(f[mvatoms[c]-1])
 
     print()
+
+    '''table -- NOT WORKING'''
+
+    try:
+        from pandas import DataFrame
+        DataFrame( { 'Output Forces' : pwForcelist,
+                 'Finite Forces' : calcForces})
+        # add difference
     
-    # display results graphically?
+    except Exception as e:
+        print(f"AN ERROR OCCURRED: {e}")
+        print()
+    
+    '''plot -- WORKING'''
+
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from scipy.interpolate import UnivariateSpline
+
+        x = np.arange(0, numsteps * stepsize + stepsize, stepsize)
+
+        # plot pw output and best fit curve
+        y1 = np.array(pwForcelist)
+        s1 = UnivariateSpline(x, y1, s=1)
+        xs1 = np.linspace(0, (len(y1) - 1) * stepsize, 100)
+        ys1 = s1(xs1)
+
+        # plot finite difference and best fit curve
+        y2 = np.array(calcForcelist)
+        #z = np.polyfit(x[1:-1], y2, 1) # linear fitting
+        #p = np.poly1d(z)
+        s2 = UnivariateSpline(x[1:-1], y2, s=1) # curvilinear fitting
+        xs2 = np.linspace(0, (len(y2)+2) * stepsize, 100) # DOESN'T WORK WITH LEN(Y2)+1 ??
+        ys2 = s2(xs2)
+
+        plt.scatter(x, y1, c='b') # scatter method, not plot
+        plt.scatter(x[1:-1], y2, c='r')
+        plt.plot(xs1, ys1) # y1 fitting
+        #plt.plot(x, p(x), "r--") # y2 linear fitting
+        plt.plot(xs2, ys2)
+
+        plt.xlabel(f'\u0394{axis}')
+        plt.ylabel('Force (N)')
+
+        plt.show()
+    
+    except Exception as e:
+        print(f'AN ERROR OCCURRED: {e}')
+        print()
+
+    again = input('RUN AGAIN?: ')
+    if again.lower() == 'y':
+        print('\n\n')
+        main()
+    else:
+        print('GOODBYE\n')
+        quit()
+
+
 
 main()
 
@@ -549,3 +646,9 @@ main()
 # force value to use from output should be from the atom changed in the direction changed ***DONE***
 # manage temporary files differently
 # use a file to store user settings ***DONE***
+
+# future development
+# change to consistent variable names with flags when passed to functions (i.e. nsteps -> nstepsTranslate -> nstepsTranslationPrompt -> )
+# console formatting -- https://stackoverflow.com/questions/9989334/create-nice-column-output-in-python
+# handle console note: IEEE_UNDERFLOW_FLAG
+# add logging

@@ -1,0 +1,4 @@
+'''paths of user working directory & pw.x'''
+
+workdir = /Users/nicholas/ ... /pwtest/test
+pwx = /Users/nicholas/Desktop/qe/bin/mpirun -np 2 ./pw.x -in pw.in > pw.out
