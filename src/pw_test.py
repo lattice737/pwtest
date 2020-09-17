@@ -612,20 +612,22 @@ def main():
 
         plt.scatter(x, y1, c='b') # scatter method, not plot
         plt.scatter(x[1:-1], y2, c='r')
-        plt.plot(xs1, ys1) # y1 fitting
+        plt.plot(xs1, ys1, label='Output') # y1 fitting
         #plt.plot(x, p(x), "r--") # y2 linear fitting
-        plt.plot(xs2, ys2)
+        plt.plot(xs2, ys2, label='Finite Diff')
 
         plt.xlabel(f'\u0394{axis}')
         plt.ylabel('Force (N)')
 
+        # add legend
+        
         plt.show()
     
     except Exception as e:
         print(f'AN ERROR OCCURRED: {e}')
         print()
 
-    again = input('RUN AGAIN?: ')
+    again = input('RUN AGAIN? (y/n): ')
     if again.lower() == 'y':
         print('\n\n')
         main()
