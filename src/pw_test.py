@@ -627,7 +627,7 @@ def main():
         print(f'AN ERROR OCCURRED: {e}')
         print()
 
-    again = input('RUN AGAIN?: ')
+    again = input('RUN AGAIN? (y/n): ')
     if again.lower() == 'y':
         print('\n\n')
         main()
