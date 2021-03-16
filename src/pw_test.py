@@ -442,7 +442,7 @@ def translate(pwx):
     celldim, natoms, ntypes, names, coordinates = read_input('pw.in')
 
     # confirm translation settings
-    atoms_to_translate, nsteps, translate_directions, step  = translation_prompt(natoms, names, nsteps, axes)
+    atoms_to_translate, nsteps, translate_directions, step = translation_prompt(natoms, names, nsteps, axes)
 
     print()
     print(38 * '~', 'RUNNING', 38 * '~')
